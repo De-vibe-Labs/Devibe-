@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* ---------- Type ---------- */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* ---------- Surfaces ---------- */
+  --color-background: #09090b;
+  --color-foreground: #dfe2f1;
+
+  --color-deep: #07090e;
+  --color-surface: #0e1017;
+  --color-surface-2: #14161f;
+  --color-surface-3: #1c1f2a;
+
+  --color-card: #0e1017;
+  --color-card-foreground: #dfe2f1;
+  --color-popover: #14161f;
+  --color-popover-foreground: #dfe2f1;
+
+  /* ---------- Brand ---------- */
+  --color-primary: #7c3aed;
+  --color-primary-foreground: #ffffff;
+  --color-primary-soft: #ccbeff;
+
+  --color-accent: #00dce5;
+  --color-accent-foreground: #04121a;
+
+  /* ---------- Neutrals ---------- */
+  --color-muted: #171a23;
+  --color-muted-foreground: #8b90a6;
+  --color-border: #27272a;
+  --color-border-strong: #3a3a42;
+  --color-input: #1a1d27;
+  --color-ring: #7c3aed;
+
+  /* ---------- Status ---------- */
+  --color-success: #34d399;
+  --color-warning: #f59e0b;
+  --color-danger: #f43f5e;
+
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: #fff;
+  }
+
+  /* Scrollbars tuned for the dark shell */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a2d38;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3b3f4d;
+    background-clip: content-box;
+  }
+}
+
+@utility glass {
+  background-color: color-mix(in oklab, #1c1f2a 45%, transparent);
+  backdrop-filter: blur(20px);
+  border: 1px solid color-mix(in oklab, #ffffff 8%, transparent);
+}
+
+@utility grain {
+  background-image: radial-gradient(color-mix(in oklab, #ffffff 22%, transparent) 0.5px, transparent 0.5px);
+  background-size: 3px 3px;
+  opacity: 0.035;
+}
+
+@utility text-glow-primary {
+  text-shadow: 0 0 24px color-mix(in oklab, #7c3aed 55%, transparent);
+}
+
+@keyframes devibe-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes devibe-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes devibe-dash {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@keyframes devibe-flow {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  10%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes devibe-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes devibe-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@utility animate-pulse-soft {
+  animation: devibe-pulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@utility animate-shimmer {
+  background-image: linear-gradient(90deg, transparent, color-mix(in oklab, #ffffff 8%, transparent), transparent);
+  background-size: 200% 100%;
+  animation: devibe-shimmer 3s linear infinite;
+}
+
+@utility animate-dash {
+  animation: devibe-dash 1s linear infinite;
+}
+
+@utility animate-rise {
+  animation: devibe-rise 0.45s ease-out both;
+}
+
+@utility animate-caret {
+  animation: devibe-caret 1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
