@@ -1,0 +1,14 @@
+{
+  "name": "@devibe/api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "NestJS / Workers API stub. Scaffold in Phase 2.",
+  "scripts": {
+    "dev": "echo 'apps/api not scaffolded yet — see PROJECT_STRUCTURE.md'",
+    "build": "echo 'apps/api stub — no build'",
+    "typecheck": "echo 'apps/api stub'",
+    "test": "echo 'apps/api stub'",
+    "clean": "echo 'apps/api stub'",
+    "db:migrate": "echo 'No migrations yet'"
+  }
+}

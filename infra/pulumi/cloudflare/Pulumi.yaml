@@ -1,0 +1,3 @@
+name: genesis-alpha
+runtime: nodejs
+description: DeVibe Cloudflare small-scale stack (agent-managed)

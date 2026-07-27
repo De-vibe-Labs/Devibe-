@@ -1,0 +1,11 @@
+{
+  "name": "devibe-pulumi-cloudflare-starter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Checked-in copy of the Cloudflare Pulumi starter the DevOps Agent generates. Not applied in Phase 1 mock mode.",
+  "main": "index.ts",
+  "dependencies": {
+    "@pulumi/pulumi": "^3.140.0",
+    "@pulumi/cloudflare": "^5.40.0"
+  }
+}
