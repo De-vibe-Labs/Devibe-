@@ -1,0 +1,13 @@
+{
+  "name": "@devibe/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Next.js web app stub (Cloudflare Pages). Scaffold in Phase 2.",
+  "scripts": {
+    "dev": "echo 'apps/web not scaffolded yet — see PROJECT_STRUCTURE.md'",
+    "build": "echo 'apps/web stub — no build'",
+    "typecheck": "echo 'apps/web stub'",
+    "test": "echo 'apps/web stub'",
+    "clean": "echo 'apps/web stub'"
+  }
+}

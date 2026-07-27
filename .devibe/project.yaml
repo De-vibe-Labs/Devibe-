@@ -1,0 +1,21 @@
+# DeVibe project metadata
+# Keep in sync with the `devibe:` frontmatter in PRD.md.
+# Validate: make prd-validate
+devibe:
+  version: 1
+  tags:
+    - github-connected
+    - cloud-enabled
+    - auto-scale
+  github:
+    owner: De-vibe-Labs
+    repo: Devibe-
+    default_branch: main
+  cloud:
+    primary: cloudflare
+    adapters: [cloudflare, aws, gcp, azure]
+    region_preference: auto
+    scale_policy: cost-optimized
+  memory:
+    project_id: 550e8400-e29b-41d4-a716-446655440000
+  production_auto: false

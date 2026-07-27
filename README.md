@@ -1,94 +1,66 @@
-# DeVibe Foundation SDK
+# DeVibe
 
-Phase 1 foundation for **agent-managed, serverless/edge-first multi-cloud** infrastructure.
+AI-native cloud orchestrator — **tagged PRD or MCP call → agent-managed multi-cloud runtime**.
 
-A single MCP call (`manage_project` / `sync_from_prd`) or a tagged `.devibe/project.yaml` / PRD is enough for agents to detect **GitHub + cloud connected**, then plan, provision, scale, and manage — using **fully mocked** Cloudflare / AWS / GCP / Azure adapters (no real cloud credentials required).
+Phase 1 ships a foundation SDK with **mocked** Cloudflare / AWS / GCP / Azure adapters. No real cloud credentials required for demos.
 
-## Packages
+## Humans & agents — start here
 
-| Package | Role |
+| File | Purpose |
 |---|---|
-| [`@devibe/project-config`](packages/project-config) | `project.yaml` / PRD front-matter schema, parser, linkage evaluation |
-| [`@devibe/cloud-providers`](packages/cloud-providers) | `CloudProviderInterface` + mocked CF/AWS/GCP/Azure adapters |
-| [`@devibe/iac-templates`](packages/iac-templates) | Pulumi Cloudflare starter the DevOps Agent generates |
-| [`@devibe/mcp-server`](packages/mcp-server) | MCP tools, orchestration loop, Product/DevOps/Security/Backend/QA stubs |
-
-Example metadata: [`examples/genesis-alpha`](examples/genesis-alpha).
+| [`PRD.md`](PRD.md) | Source of truth (`devibe:` frontmatter + tags) |
+| [`.devibe/project.yaml`](.devibe/project.yaml) | Machine-readable twin of PRD frontmatter |
+| [`prompts/required-feature-prompt.md`](prompts/required-feature-prompt.md) | Template for every new feature |
+| [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md) | Canonical monorepo layout |
+| [`Makefile`](Makefile) | `prd-validate`, `agents-run`, `deploy-cloudflare`, … |
 
 ## Quick start
 
 ```bash
 pnpm install
-pnpm build
-pnpm test
-
-# End-to-end mocked demo
-pnpm --filter @devibe/mcp-server exec tsx src/demo.ts
-
-# Stdio MCP server (for Cursor / Claude / etc.)
-pnpm --filter @devibe/mcp-server start
+make prd-validate          # tags + PRD ↔ yaml sync
+make agents-run            # mocked plan via orchestration loop
+make agents-apply APPROVED=1
+make demo                  # fuller mocked apply + scale demo
 ```
 
-## Trigger system
+## Required feature prompt
+
+Copy [`prompts/required-feature-prompt.md`](prompts/required-feature-prompt.md) → `prompts/features/<name>.md`, fill `{{FEATURE_NAME}}`, description, stories, and GitHub fields.
+
+Because frontmatter already includes:
 
 ```yaml
-# .devibe/project.yaml
-devibe:
-  version: 1
-  tags:
-    - github-connected
-    - cloud-enabled
-    - auto-scale
-  github:
-    owner: De-vibe-Labs
-    repo: genesis-alpha
-    default_branch: main
-  cloud:
-    primary: cloudflare
-    adapters: [cloudflare, aws, gcp, azure]
-    region_preference: auto
-    scale_policy: cost-optimized
-  memory:
-    project_id: 550e8400-e29b-41d4-a716-446655440000
+tags:
+  - github-connected
+  - cloud-enabled
+  - auto-scale
 ```
 
-When `github-connected` + `cloud-enabled` tags resolve with valid config, the banner becomes:
+…agents unlock full GitHub + multi-cloud management without extra instructions.
 
-> Cloud + GitHub linked — full lifecycle management available.
+Sample filled prompt: [`prompts/features/cloudflare-first-deployment-flow.md`](prompts/features/cloudflare-first-deployment-flow.md).
 
-## MCP tools
+## Foundation packages
 
-- **`sync_from_prd`** — parse tagged PRD / YAML; optionally auto-run `manage_project`
-- **`manage_project`** — `status` | `plan` | `apply` | `scale` | `destroy` | `sync-memory`
+| Package | Role |
+|---|---|
+| `@devibe/project-config` | Schema, parser, linkage evaluation |
+| `@devibe/cloud-providers` | `CloudProviderInterface` + mocked adapters |
+| `@devibe/iac-templates` | Pulumi Cloudflare generator |
+| `@devibe/mcp-server` | `manage_project` / `sync_from_prd` + agent stubs |
 
-Safety: high-cost / destructive applies require `approved: true` or `production_auto: true`. Every action emits structured JSON agent events (orchestrator, devops, security, qa, backend).
+App stubs: `apps/web`, `apps/api`. IaC: `infra/pulumi/cloudflare`.
 
-## Architecture (Phase 1)
+## MCP
 
-```
-PRD / project.yaml ──► sync_from_prd ──► linkage check
-                              │
-                              ▼
-                      manage_project
-                              │
-              ┌───────────────┼───────────────┐
-              ▼               ▼               ▼
-        DevOps Agent    Security Agent    QA Agent
-              │
-              ▼
-   CloudProviderInterface (mocked)
-   CF | AWS | GCP | Azure
-              │
-              ▼
-   Pulumi Cloudflare template preview + in-memory resources
+```bash
+pnpm --filter @devibe/mcp-server start   # stdio MCP server
 ```
 
-## Scaling path (not implemented here)
+Tools: `sync_from_prd`, `manage_project` (`status` | `plan` | `apply` | `scale` | `destroy` | `sync-memory`).
 
-1. **Small** — single Cloudflare account, per-project Workers/Pages/D1/R2 (mock today)
-2. **Multi-tenant** — promote workloads to user AWS/GCP/Azure via adapters
-3. **Full multi-cloud** — optional Kubernetes, global traffic, agent auto-scaling policies
+## Safety
 
-## License
-
-Private — De-vibe-Labs
+- High-cost / destructive applies need `APPROVED=1` / `approved: true` unless `production_auto: true`
+- `make prd-validate` is required before agent scale/deploy targets
