@@ -35,15 +35,15 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
 
   return (
-    <div className="flex h-full flex-col gap-6 border-r border-border bg-surface-1 p-4">
-      <div className="px-2">
+    <div className="flex h-full flex-col gap-6 overflow-y-auto border-r border-border bg-surface-1 p-4">
+      <div className="shrink-0 px-2">
         <Link href="/" className="font-display text-lg font-bold tracking-tight">
           De<span className="text-primary-soft">Vibe</span>
         </Link>
         <p className="mt-0.5 text-xs text-muted-foreground">AI Cloud Orchestrator</p>
       </div>
 
-      <nav aria-label="Primary" className="flex flex-1 flex-col gap-1">
+      <nav aria-label="Primary" className="flex shrink-0 flex-col gap-1">
         {nav.map((item) => {
           const active = pathname === item.href
           return (
@@ -66,7 +66,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         })}
       </nav>
 
-      <div className="relative overflow-hidden rounded-xl bg-primary p-4 text-primary-foreground">
+      <div className="relative mt-auto shrink-0 overflow-hidden rounded-xl bg-primary p-4 text-primary-foreground">
         <Zap className="absolute -right-2 -bottom-3 size-16 opacity-20" aria-hidden="true" />
         <p className="relative text-sm font-semibold">Upgrade to Pro</p>
         <p className="relative mt-1 text-xs leading-relaxed opacity-90">
@@ -74,7 +74,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         </p>
       </div>
 
-      <div className="flex flex-col gap-1 border-t border-border pt-3">
+      <div className="flex shrink-0 flex-col gap-1 border-t border-border pt-3">
         {footerNav.map((item) => (
           <Link
             key={item.href}
