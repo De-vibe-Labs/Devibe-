@@ -1,7 +1,22 @@
-# `@devibe/web` (Next.js)
+# `@devibe/web`
 
-Stub for the DeVibe control-plane / builder UI.
+Vite + React + TypeScript web app ported from the DeVibe HTML mockups.
 
-- Deploy target: Cloudflare Pages (or Workers)
-- Design references: uploaded Monaco IDE / orchestration mockups
-- Do not add a parallel app root — grow this package in Phase 2
+## Routes
+
+| Path | Screen |
+|---|---|
+| `/` | Landing |
+| `/workspace` | AI Builder / Monaco-style workspace |
+| `/orchestration` | Live topology + MCP tools |
+| `/fleet` | Global fleet intelligence |
+
+## Commands
+
+```bash
+pnpm --filter @devibe/web dev
+pnpm --filter @devibe/web build
+# or from repo root:
+make web-dev
+make web-build
+```

@@ -50,7 +50,12 @@ Sample filled prompt: [`prompts/features/cloudflare-first-deployment-flow.md`](p
 | `@devibe/iac-templates` | Pulumi Cloudflare generator |
 | `@devibe/mcp-server` | `manage_project` / `sync_from_prd` + agent stubs |
 
-App stubs: `apps/web`, `apps/api`. IaC: `infra/pulumi/cloudflare`.
+Web app: `apps/web` (Vite + React — landing, workspace, orchestration, fleet). API stub: `apps/api`. IaC: `infra/pulumi/cloudflare`.
+
+```bash
+make web-dev      # http://localhost:5173
+make web-build
+```
 
 ## MCP
 

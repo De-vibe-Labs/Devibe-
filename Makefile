@@ -5,7 +5,8 @@ PNPM ?= pnpm
 NODE ?= node
 
 .PHONY: help install build test demo prd-validate agents-run agents-apply \
-	deploy-cloudflare scale-status dev db-migrate typecheck clean
+	deploy-cloudflare scale-status dev db-migrate typecheck clean \
+	web-dev web-build
 
 help:
 	@echo "DeVibe targets:"
@@ -18,6 +19,8 @@ help:
 	@echo "  make deploy-cloudflare Alias of agents-apply (Cloudflare primary, mocked Phase 1)"
 	@echo "  make scale-status      manage_project status after validate"
 	@echo "  make demo              End-to-end mocked demo script"
+	@echo "  make web-dev           Vite web app (apps/web)"
+	@echo "  make web-build         Build Vite web app"
 	@echo "  make dev               MCP server watch mode"
 	@echo "  make db-migrate        Placeholder for future Drizzle / D1 migrations"
 	@echo "  make typecheck         Typecheck packages"
@@ -62,6 +65,12 @@ demo: prd-validate
 
 dev:
 	$(PNPM) run dev:mcp
+
+web-dev:
+	$(PNPM) --filter @devibe/web dev
+
+web-build:
+	$(PNPM) --filter @devibe/web build
 
 # Phase 1 placeholder — D1 / Postgres migrations land with apps/api.
 db-migrate:

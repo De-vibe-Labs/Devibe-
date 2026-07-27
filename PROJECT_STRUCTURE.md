@@ -20,7 +20,7 @@
 ├── tsconfig.base.json
 │
 ├── apps/                           # Product surfaces (stubs → grow here)
-│   ├── web/                        # Next.js (Cloudflare Pages / Workers)
+│   ├── web/                        # Vite + React (Cloudflare Pages)
 │   └── api/                        # NestJS / Workers API (edge-first)
 │
 ├── packages/                       # Shared libraries (Phase 1 implemented)
