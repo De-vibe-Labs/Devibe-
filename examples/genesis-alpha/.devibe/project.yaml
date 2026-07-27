@@ -1,0 +1,20 @@
+# DeVibe project metadata — presence of tags + valid GitHub/cloud config
+# activates the full agent management loop (plan, provision, scale, monitor).
+devibe:
+  version: 1
+  tags:
+    - github-connected
+    - cloud-enabled
+    - auto-scale
+  github:
+    owner: De-vibe-Labs
+    repo: genesis-alpha
+    default_branch: main
+  cloud:
+    primary: cloudflare
+    adapters: [cloudflare, aws, gcp, azure]
+    region_preference: auto
+    scale_policy: cost-optimized
+  memory:
+    project_id: 550e8400-e29b-41d4-a716-446655440000
+  production_auto: false
