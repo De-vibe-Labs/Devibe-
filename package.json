@@ -1,0 +1,24 @@
+{
+  "name": "devibe",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DeVibe foundation SDK — agent-managed multi-cloud infrastructure (mocked Phase 1).",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter './packages/*' run build",
+    "typecheck": "pnpm -r --filter './packages/*' run typecheck",
+    "test": "pnpm run build && pnpm -r --filter './packages/*' run test",
+    "clean": "pnpm -r --filter './packages/*' run clean",
+    "dev:mcp": "pnpm --filter @devibe/mcp-server dev",
+    "demo": "pnpm run build && pnpm --filter @devibe/mcp-server exec tsx src/demo.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "tsx": "^4.19.2",
+    "@types/node": "^22.10.5"
+  }
+}

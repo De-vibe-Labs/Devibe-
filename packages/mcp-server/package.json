@@ -1,0 +1,38 @@
+{
+  "name": "@devibe/mcp-server",
+  "version": "0.1.0",
+  "description": "DeVibe MCP control plane — manage_project / sync_from_prd with mocked multi-cloud adapters.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "bin": {
+    "devibe-mcp": "./dist/cli.js"
+  },
+  "scripts": {
+    "dev": "tsx watch src/cli.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "clean": "rm -rf dist",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@devibe/cloud-providers": "workspace:*",
+    "@devibe/project-config": "workspace:*",
+    "@devibe/iac-templates": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "tsx": "^4.19.2"
+  }
+}
