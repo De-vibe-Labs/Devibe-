@@ -1,4 +1,4 @@
-import { Check, Cloud, Database, Globe, Server, Sparkles } from "lucide-react"
+import { Check, Cloud, Database, Server, Sparkles } from "lucide-react"
 import { Badge, Eyebrow, GlassCard, StatusDot } from "@/components/ui/primitives"
 
 const rails = [
@@ -88,7 +88,7 @@ export function OrchestrationHighlight() {
               </div>
 
               <svg
-                viewBox="0 0 320 260"
+                viewBox="0 30 320 200"
                 role="img"
                 aria-label="Traffic flows from global users through two edge regions into the DeVibe AI gateway, which routes to compute clusters and a serverless database."
                 className="mt-4 w-full"
@@ -162,11 +162,6 @@ export function OrchestrationHighlight() {
                   D1 replicated
                 </text>
               </svg>
-
-              {/* Hub icon overlays */}
-              <div className="pointer-events-none absolute top-[46%] left-[10%] hidden -translate-y-1/2 sm:block">
-                <Globe className="size-4 text-muted-foreground" />
-              </div>
 
               <div className="mt-2 flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/10 p-3">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/25">
