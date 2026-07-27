@@ -8,11 +8,12 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "pnpm -r run build",
-    "typecheck": "pnpm -r run typecheck",
-    "test": "pnpm -r run test",
-    "clean": "pnpm -r run clean",
-    "dev:mcp": "pnpm --filter @devibe/mcp-server dev"
+    "build": "pnpm -r --filter './packages/*' run build",
+    "typecheck": "pnpm -r --filter './packages/*' run typecheck",
+    "test": "pnpm run build && pnpm -r --filter './packages/*' run test",
+    "clean": "pnpm -r --filter './packages/*' run clean",
+    "dev:mcp": "pnpm --filter @devibe/mcp-server dev",
+    "demo": "pnpm run build && pnpm --filter @devibe/mcp-server exec tsx src/demo.ts"
   },
   "devDependencies": {
     "typescript": "^5.7.2",
