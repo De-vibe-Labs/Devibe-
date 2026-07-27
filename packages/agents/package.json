@@ -1,0 +1,12 @@
+{
+  "name": "@devibe/agents",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared agent prompt registry (Phase 2).",
+  "scripts": {
+    "build": "echo stub",
+    "typecheck": "echo stub",
+    "test": "echo stub",
+    "clean": "echo stub"
+  }
+}
