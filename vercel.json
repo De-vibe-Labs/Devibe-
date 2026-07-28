@@ -1,10 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rootDirectory": "apps/web",
   "framework": "vite",
-  "installCommand": "cd ../.. && pnpm install",
-  "buildCommand": "cd ../.. && pnpm --filter @devibe/web build",
-  "outputDirectory": "dist",
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm --filter @devibe/web build",
+  "outputDirectory": "apps/web/dist",
   "rewrites": [
     {
       "source": "/((?!assets/).*)",
