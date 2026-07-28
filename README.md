@@ -50,12 +50,21 @@ Sample filled prompt: [`prompts/features/cloudflare-first-deployment-flow.md`](p
 | `@devibe/iac-templates` | Pulumi Cloudflare generator |
 | `@devibe/mcp-server` | `manage_project` / `sync_from_prd` + agent stubs |
 
-Web app: `apps/web` (Vite + React — landing, workspace, orchestration, fleet). API stub: `apps/api`. IaC: `infra/pulumi/cloudflare`.
+| `/` | Landing |
+| `/chat` | AI Builder chat (LLM prompt screen) |
+| `/login` · `/signup` | Auth flow |
+| `/workspace` | IDE + dual preview |
+| `/cloud` | Cloud distribution |
+| `/design-prompts` | Copy Figma UI prompts |
+| `/orchestration` | Topology + MCP tools |
+| `/fleet` | Global fleet dashboard |
 
 ```bash
 make web-dev      # http://localhost:5173
 make web-build
 ```
+
+Figma Make prompts also live in [`prompts/figma/`](prompts/figma/).
 
 ## MCP
 
