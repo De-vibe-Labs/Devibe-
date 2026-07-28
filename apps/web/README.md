@@ -7,9 +7,13 @@ Vite + React + TypeScript web app ported from the DeVibe HTML mockups.
 | Path | Screen |
 |---|---|
 | `/` | Landing |
-| `/workspace` | AI Builder / Monaco-style workspace |
-| `/orchestration` | Live topology + MCP tools |
-| `/fleet` | Global fleet intelligence |
+| `/chat` | AI Builder chat (LLM prompt screen) |
+| `/login` · `/signup` | Auth flow |
+| `/workspace` | Monaco-style IDE + dual preview |
+| `/cloud` | Cloud distribution & deployment |
+| `/design-prompts` | Copy Figma Make UI prompts |
+| `/orchestration` | Topology + MCP tools |
+| `/fleet` | Global fleet dashboard |
 
 ## Commands
 

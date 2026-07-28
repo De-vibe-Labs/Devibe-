@@ -21,7 +21,7 @@ export function LandingPage() {
             </p>
             <div className="flex flex-col items-center justify-center gap-4 pt-2 sm:flex-row">
               <Link
-                to="/workspace"
+                to="/chat"
                 className="w-full rounded-xl bg-primary px-8 py-4 text-lg font-bold text-on-primary shadow-xl shadow-primary/20 transition hover:scale-[1.02] active:scale-95 sm:w-auto"
               >
                 Start building for free
