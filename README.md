@@ -1,8 +1,10 @@
 # DeVibe
 
-AI-native cloud orchestrator — **tagged PRD or MCP call → agent-managed multi-cloud runtime**.
+AI Engineering Platform — **tagged PRD or MCP call → Supabase dataplane + agent-managed multi-cloud runtime** via MCS.
 
 Phase 1 ships a foundation SDK with **mocked** Cloudflare / AWS / GCP / Azure adapters. No real cloud credentials required for demos.
+
+**Roadmap (Phase 0 docs):** [`docs/roadmap/AI_ENGINEERING_PLATFORM.md`](docs/roadmap/AI_ENGINEERING_PLATFORM.md) — hybrid Supabase data plane + MCS cloud adapters; approve phases before coding.
 
 ## Humans & agents — start here
 
@@ -10,6 +12,9 @@ Phase 1 ships a foundation SDK with **mocked** Cloudflare / AWS / GCP / Azure ad
 |---|---|
 | [`PRD.md`](PRD.md) | Source of truth (`devibe:` frontmatter + tags) |
 | [`.devibe/project.yaml`](.devibe/project.yaml) | Machine-readable twin of PRD frontmatter |
+| [`docs/roadmap/AI_ENGINEERING_PLATFORM.md`](docs/roadmap/AI_ENGINEERING_PLATFORM.md) | Multi-phase platform expansion plan |
+| [`docs/specs/MCS.md`](docs/specs/MCS.md) | Model Cloud Standard (draft) |
+| [`docs/architecture/`](docs/architecture/) | Supabase hybrid + agentic ops architecture |
 | [`prompts/required-feature-prompt.md`](prompts/required-feature-prompt.md) | Template for every new feature |
 | [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md) | Canonical monorepo layout |
 | [`Makefile`](Makefile) | `prd-validate`, `agents-run`, `deploy-cloudflare`, … |
