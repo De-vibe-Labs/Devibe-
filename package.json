@@ -8,6 +8,8 @@
     "node": ">=20"
   },
   "scripts": {
+    "dev": "pnpm --filter @devibe/web dev",
+    "build:web": "pnpm --filter @devibe/web build",
     "build": "pnpm -r --filter './packages/project-config' --filter './packages/cloud-providers' --filter './packages/iac-templates' --filter './packages/mcp-server' run build",
     "typecheck": "pnpm -r --filter './packages/project-config' --filter './packages/cloud-providers' --filter './packages/iac-templates' --filter './packages/mcp-server' run typecheck",
     "test": "pnpm run build && pnpm -r --filter './packages/project-config' --filter './packages/cloud-providers' --filter './packages/iac-templates' --filter './packages/mcp-server' run test",
