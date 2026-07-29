@@ -1,9 +1,21 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { CloudProviderId } from "@devibe/project-config";
 import { TOOLS, type ToolContext } from "./tools/index.js";
+import { createCloudPluginTools } from "./tools/cloud-plugin.js";
 import { AGENTS } from "./agents/index.js";
 
 const SERVER_INFO = { name: "devibe-mcp-server", version: "0.1.0" } as const;
+
+export interface CreateMcpServerOptions {
+  name?: string;
+  plugins?: Array<"cloud" | "supabase" | "docker" | "kubernetes">;
+  cloud?: {
+    primary?: CloudProviderId;
+    adapters?: CloudProviderId[];
+    mock?: boolean;
+  };
+}
 
 function resultOf(value: unknown): CallToolResult {
   return {
@@ -78,14 +90,27 @@ export function describeRouting(): Record<string, unknown> {
   };
 }
 
-/** Build an MCP server exposing manage_project + sync_from_prd. */
-export function createMcpServer(): McpServer {
-  const server = new McpServer(SERVER_INFO, {
+/** Build an MCP server exposing manage_project + sync_from_prd (+ optional plugins). */
+export function createMcpServer(options: CreateMcpServerOptions = {}): McpServer {
+  const info = {
+    name: options.name ?? SERVER_INFO.name,
+    version: SERVER_INFO.version,
+  };
+  const server = new McpServer(info, {
     capabilities: { tools: {}, resources: {} },
   });
 
-  for (const tool of TOOLS) {
-    registerTool(server, tool as unknown as RegistrableTool);
+  const tools: RegistrableTool[] = TOOLS.map((t) => t as unknown as RegistrableTool);
+  if (options.plugins?.includes("cloud")) {
+    const cloudTools = createCloudPluginTools(options.cloud?.primary ?? "cloudflare");
+    const existing = new Set(tools.map((t) => t.name));
+    for (const tool of cloudTools) {
+      if (!existing.has(tool.name)) tools.push(tool as unknown as RegistrableTool);
+    }
+  }
+
+  for (const tool of tools) {
+    registerTool(server, tool);
   }
 
   server.registerResource(

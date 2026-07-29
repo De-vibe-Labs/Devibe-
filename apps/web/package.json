@@ -16,9 +16,12 @@
   "dependencies": {
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-router-dom": "^7.18.1"
+    "react-router-dom": "^7.18.1",
+    "@devibe/auth": "workspace:*",
+    "@devibe/mcp-builder": "workspace:*"
   },
   "devDependencies": {
+    "@netlify/vite-plugin": "^2.7.14",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",

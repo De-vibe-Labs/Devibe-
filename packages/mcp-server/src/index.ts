@@ -1,4 +1,9 @@
-export { createMcpServer, describeRouting, toolNames } from "./registry.js";
+export {
+  createMcpServer,
+  describeRouting,
+  toolNames,
+  type CreateMcpServerOptions,
+} from "./registry.js";
 export { TOOLS, manageProjectTool, syncFromPrdTool } from "./tools/index.js";
 export { AGENTS } from "./agents/index.js";
 export {

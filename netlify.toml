@@ -1,0 +1,20 @@
+[build]
+  command = "pnpm --filter @devibe/auth --filter @devibe/mcp-builder --filter @devibe/cloud-providers --filter @devibe/project-config --filter @devibe/web build"
+  publish = "apps/web/dist"
+  functions = "netlify/functions"
+
+[dev]
+  command = "pnpm --filter @devibe/web dev"
+  targetPort = 5173
+  port = 8888
+  autoLaunch = false
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["@anthropic-ai/sdk", "openai"]
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
