@@ -27,28 +27,33 @@ Keep this file in sync with [`.devibe/project.yaml`](.devibe/project.yaml). Vali
 
 ## Vision
 
-DeVibe is an AI-native cloud orchestrator: turn a tagged PRD or feature prompt into a globally distributed, agent-managed runtime. Start serverless/edge-first on Cloudflare, stay provider-agnostic via `CloudProviderInterface`, and grow into multi-cloud without rewriting the agent loop.
+DeVibe is an **AI Engineering Platform**: turn a tagged PRD or feature prompt into a globally distributed, agent-managed application. **Supabase** is the default **data plane** (Postgres, Auth, RLS, Realtime, Storage, Edge Functions, pgvector, Cron, queues). **MCS (Model Cloud Standard)** is the vendor-neutral layer agents use to deploy compute and infrastructure to any cloud. Cloudflare remains the default **edge compute / CDN** adapter for cost-optimised projects; AWS, GCP, Azure, Kubernetes, Docker, and further adapters plug in behind the same MCS tools.
+
+Phase 1 ships a foundation SDK (mocked multi-cloud + local MCP). The multi-phase expansion roadmap lives in [`docs/roadmap/AI_ENGINEERING_PLATFORM.md`](docs/roadmap/AI_ENGINEERING_PLATFORM.md) — **approve phases before implementation**.
 
 ## Goals
 
-1. **Near-zero cost by default** — Cloudflare Workers, Durable Objects, D1/R2/Queues, Pages, Workers AI + AI Gateway.
-2. **Infrastructure as agent-managed code** — Pulumi (TypeScript) modules generated and planned by the DevOps Agent.
-3. **One trigger** — a tagged PRD / `.devibe/project.yaml` or a single MCP call is enough once GitHub + cloud are linked.
-4. **Safety** — cost budgets, approval gates for destructive/high-cost applies, full audit events (Security Agent).
+1. **Hybrid by default** — Supabase for application data/auth/memory; MCS adapters for edge/serverless/containers/K8s.
+2. **Near-zero cost edge path** — Cloudflare Workers, Durable Objects, R2/Queues, Pages, Workers AI + AI Gateway as the primary compute adapter.
+3. **Infrastructure as agent-managed code** — Pulumi (and later Helm/manifests) generated and planned by specialised agents.
+4. **One trigger** — a tagged PRD / `.devibe/project.yaml` or a single MCP call is enough once GitHub + cloud (+ dataplane) are linked.
+5. **Vendor-neutral agents** — agents call MCS + Supabase MCP tools; they never bind to a single cloud SDK.
+6. **Safety** — cost budgets, approval gates for destructive/high-cost applies, full audit events (Security Agent).
 
 ## Non-goals (Phase 1)
 
 - Full control-plane UI (mockups exist; not required for the foundation SDK).
 - Live cloud API applies (adapters are **mocked** end-to-end; real providers come later).
 - Full NestJS/Next.js product surface (skeleton layout documented in `PROJECT_STRUCTURE.md`).
+- Implementing MCS adapters, Supabase provisioning, or marketplace connectors before Phase 0 approval (see roadmap).
 
 ## Personas
 
 | Persona | Needs |
 |---|---|
-| Founder / builder | Drop a PRD, get deployable edge stack + agent loop |
-| Platform engineer | Provider adapters, IaC modules, approval gates |
-| Security reviewer | Audit trail of every MCP / IaC action |
+| Founder / builder | Drop a PRD, get Supabase data plane + deployable edge stack + agent loop |
+| Platform engineer | MCS adapters, IaC modules, approval gates, marketplace connectors |
+| Security reviewer | Audit trail of every MCP / IaC / Supabase admin action |
 
 ## Core capabilities
 
@@ -57,27 +62,34 @@ DeVibe is an AI-native cloud orchestrator: turn a tagged PRD or feature prompt i
 - Parse `devibe:` frontmatter or `.devibe/project.yaml`.
 - Require tags `github-connected` + `cloud-enabled` (optional `auto-scale`) with valid GitHub + cloud blocks.
 - Banner when active: **Cloud + GitHub linked — full lifecycle management available.**
+- **Planned (Phase 2b):** optional `dataplane.provider: supabase` block — see [Supabase architecture](docs/architecture/SUPABASE_DEFAULT_BACKEND.md). Do not add to frontmatter until `@devibe/project-config` schema is extended.
 
 ### Multi-agent loop
 
 | Agent | Responsibility |
 |---|---|
 | Product | Owns PRD / feature prompts and metadata tags |
-| DevOps | Reads tags → generates Pulumi → plan/apply via adapters |
+| DevOps | Reads tags → generates Pulumi / MCS applies via adapters |
 | Security | Approval gates, secret hygiene, audit log |
-| Backend | Edge/serverless service shapes (Workers, queues, D1) |
+| Backend | Edge/serverless shapes + Supabase dataplane coordination |
 | QA | Readiness checks after apply |
 | Orchestrator | Routes `manage_project` / `sync_from_prd` |
 
+**Planned (Phase 6):** Cloud Architect, Kubernetes, Database, Observability, Cost Optimisation, Reliability — [Agentic infrastructure](docs/architecture/AGENTIC_INFRASTRUCTURE.md).
+
 ### Cloud adapters (Phase 1 mocked)
 
-- Cloudflare (primary small-scale)
+- Cloudflare (primary small-scale / edge)
 - AWS, GCP, Azure (same interface; plan/apply simulated)
+
+**Planned:** MCS profiles for Docker, Kubernetes, and an expanded provider catalogue — [MCS v0.1](docs/specs/MCS.md).
 
 ### MCP tools
 
 - `sync_from_prd` — parse tagged content; optionally auto-manage
 - `manage_project` — `status` \| `plan` \| `apply` \| `scale` \| `destroy` \| `sync-memory`
+
+**Planned:** Platform MCS tool surface + per-project Supabase MCP + marketplace connectors.
 
 ## Success metrics
 
@@ -85,12 +97,15 @@ DeVibe is an AI-native cloud orchestrator: turn a tagged PRD or feature prompt i
 - `make agents-run` completes a mocked plan (and optional apply with approval).
 - DevOps Agent emits a Pulumi Cloudflare preview for every plan.
 - High-cost / destroy paths block unless `approved` or `production_auto`.
+- **Roadmap:** Phase 0 docs accepted before any Phase 2+ implementation PR.
 
 ## Scaling path
 
-1. **Small** — single Cloudflare boundary, per-project Workers/Pages/D1/R2.
-2. **Promote** — user workloads to their AWS/GCP/Azure accounts via adapters.
-3. **Multi-cloud** — optional Kubernetes, global traffic, agent auto-scaling policies.
+1. **Small** — Supabase dataplane + single Cloudflare compute boundary (Workers/Pages/R2).
+2. **Promote** — user workloads to AWS/GCP/Azure (and more) via MCS adapters; dataplane stays Supabase unless BYO.
+3. **Multi-cloud** — Kubernetes / Docker profiles, global traffic, blue/green & canary, agent auto-scaling and reliability loops.
+
+Detailed phase gates: [`docs/roadmap/AI_ENGINEERING_PLATFORM.md`](docs/roadmap/AI_ENGINEERING_PLATFORM.md).
 
 ## Related files
 
@@ -98,3 +113,5 @@ DeVibe is an AI-native cloud orchestrator: turn a tagged PRD or feature prompt i
 - [`prompts/required-feature-prompt.md`](prompts/required-feature-prompt.md) — template for every new feature
 - [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md) — canonical monorepo layout agents must follow
 - [`Makefile`](Makefile) — `prd-validate`, `agents-run`, `deploy-cloudflare`, …
+- [`docs/roadmap/AI_ENGINEERING_PLATFORM.md`](docs/roadmap/AI_ENGINEERING_PLATFORM.md) — AI Engineering Platform phases
+- [`docs/specs/MCS.md`](docs/specs/MCS.md) — Model Cloud Standard draft
