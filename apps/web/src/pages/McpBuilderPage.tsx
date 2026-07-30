@@ -227,7 +227,7 @@ export function McpBuilderPage() {
                     {selected.tools.length} tools · {selected.plugins.join(", ")}
                   </p>
                 </div>
-                <Link to="/chat" className="dv-btn-secondary px-3 py-1.5 text-xs">
+                <Link to="/" className="dv-btn-secondary px-3 py-1.5 text-xs">
                   Test in AI Builder
                 </Link>
               </div>

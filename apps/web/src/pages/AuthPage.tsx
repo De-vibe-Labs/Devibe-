@@ -17,7 +17,7 @@ export function AuthPage({ initial = "login" }: { initial?: AuthView }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, login, signup, oauthLogin, error, settings, clearError } = useAuth();
-  const from = (location.state as { from?: string } | null)?.from ?? "/chat";
+  const from = (location.state as { from?: string } | null)?.from ?? "/";
 
   useEffect(() => {
     if (user && view !== "welcome" && view !== "oauth") {
@@ -231,7 +231,7 @@ export function AuthPage({ initial = "login" }: { initial?: AuthView }) {
               <button
                 type="button"
                 className="dv-btn-primary w-full py-2.5 text-sm"
-                onClick={() => navigate(from.startsWith("/") ? from : "/chat")}
+                onClick={() => navigate(from.startsWith("/") ? from : "/")}
               >
                 Open AI Builder
               </button>

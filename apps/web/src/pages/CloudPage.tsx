@@ -52,7 +52,7 @@ export function CloudPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Link to="/chat" className="dv-btn-secondary px-3 py-1.5 text-xs">
+          <Link to="/" className="dv-btn-secondary px-3 py-1.5 text-xs">
             AI Builder
           </Link>
           <button type="button" className="dv-btn-primary px-3 py-1.5 text-xs">

@@ -30,7 +30,7 @@ export function DesignPromptsPage() {
             Production-ready prompts for Figma Make, Figma AI, or any design LLM. Copy one at a
             time, then say “Keep this visual style and design system” before the next frame.
             Implemented screens:{" "}
-            <Link className="text-primary hover:underline" to="/chat">
+            <Link className="text-primary hover:underline" to="/">
               Chat
             </Link>
             ,{" "}

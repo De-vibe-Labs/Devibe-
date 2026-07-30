@@ -2,11 +2,11 @@ import { NavLink } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 
 const links = [
-  { to: "/", label: "Home", end: true },
-  { to: "/chat", label: "AI Builder" },
+  { to: "/", label: "AI Builder", end: true },
   { to: "/mcp", label: "MCP Builder" },
   { to: "/workspace", label: "IDE" },
   { to: "/cloud", label: "Cloud" },
+  { to: "/home", label: "About" },
   { to: "/design-prompts", label: "Figma Prompts" },
 ];
 
@@ -55,7 +55,7 @@ export function SiteNav() {
             Sign in
           </NavLink>
         )}
-        <NavLink to={user ? "/chat" : "/signup"} className="dv-btn-primary px-4 py-1.5 text-sm">
+        <NavLink to="/" className="dv-btn-primary px-4 py-1.5 text-sm">
           Start building
         </NavLink>
       </div>
