@@ -52,7 +52,14 @@ const SUGGESTIONS = [
   "Generate Pulumi for edge-first deployment",
 ];
 
-const MODELS = ["GPT-5", "Claude Opus", "Gemini 2.5", "Workers AI"];
+const MODELS = [
+  { id: "claude-sonnet", label: "Claude Sonnet 4.5" },
+  { id: "claude-opus", label: "Claude Opus 4.6" },
+  { id: "claude-haiku", label: "Claude Haiku 4.5" },
+  { id: "gpt-5-codex", label: "GPT-5 Codex" },
+  { id: "gpt-5.1-codex", label: "GPT-5.1 Codex" },
+  { id: "gpt-5.2-codex", label: "GPT-5.2 Codex" },
+];
 
 function detectTags(text: string): string[] {
   const tags: string[] = [];
@@ -72,10 +79,11 @@ function detectTags(text: string): string[] {
 export function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [model, setModel] = useState(MODELS[0]);
+  const [model, setModel] = useState(MODELS[0].id);
   const [agents, setAgents] = useState(AGENTS);
   const [streaming, setStreaming] = useState(false);
   const [detectedTags, setDetectedTags] = useState<string[]>([]);
+  const [aiMock, setAiMock] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -127,11 +135,37 @@ export function ChatPage() {
       },
     ]);
 
-    const replyChunks = buildAgentReply(text, tags);
+    let reply = "";
+    try {
+      const history = [...messages, userMsg]
+        .filter((m) => m.kind !== "json")
+        .map((m) => ({
+          role: (m.role === "user" ? "user" : "assistant") as "user" | "assistant",
+          content: m.content,
+        }));
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ model, messages: history }),
+      });
+      if (!res.ok) throw new Error(`AI API ${res.status}`);
+      const data = (await res.json()) as {
+        reply: string;
+        mock?: boolean;
+      };
+      reply = data.reply;
+      setAiMock(Boolean(data.mock));
+    } catch {
+      reply = buildAgentReply(text, tags).join("");
+      setAiMock(true);
+    }
+
+    const replyChunks = reply.split(/(\s+)/).filter(Boolean);
     let assembled = "";
     for (const chunk of replyChunks) {
       assembled += chunk;
-      await wait(28 + Math.random() * 40);
+      await wait(12 + Math.random() * 24);
       const snapshot = assembled;
       setMessages((m) =>
         m.map((msg) =>
@@ -235,8 +269,11 @@ export function ChatPage() {
           </ul>
         </div>
 
-        <div className="border-t border-border p-3 text-[11px] text-text-subtle">
-          MCP · manage_project ready
+        <div className="space-y-2 border-t border-border p-3 text-[11px] text-text-subtle">
+          <Link to="/mcp" className="block text-primary hover:underline">
+            MCP Server Builder
+          </Link>
+          <p>Claude + Codex · {aiMock ? "fallback mode" : "live API"}</p>
         </div>
       </aside>
 
@@ -307,8 +344,8 @@ export function ChatPage() {
                     className="rounded-lg border border-border bg-surface px-2 py-1 text-xs text-text-muted outline-none"
                   >
                     {MODELS.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
+                      <option key={m.id} value={m.id}>
+                        {m.label}
                       </option>
                     ))}
                   </select>

@@ -1,8 +1,8 @@
 {
-  "name": "@devibe/auth",
+  "name": "@devibe/mcp-builder",
   "version": "0.1.0",
   "private": true,
-  "description": "DeVibe auth helpers — Netlify Identity with local session fallback for Vite-only dev.",
+  "description": "MCP server builder — compose plugins (cloud, etc.) into deployable MCP configs.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,7 +20,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@netlify/identity": "^1.0.0"
+    "@devibe/cloud-providers": "workspace:*",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "typescript": "^5.7.2",

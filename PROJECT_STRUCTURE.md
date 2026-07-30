@@ -37,13 +37,17 @@
 │   ├── agents/                     # Shared agent prompt registry
 │   ├── ui/                         # Design system
 │   ├── database/                   # Drizzle → Supabase Postgres
-│   ├── auth/                       # Supabase Auth helpers
+│   ├── auth/                       # @devibe/auth — Netlify Identity + local fallback
+│   ├── mcp-builder/                # @devibe/mcp-builder — MCP server composer + cloud plugin
 │   ├── supabase/                   # (planned) provision + Supabase MCP tools
 │   ├── mcs-core/                   # (planned) MCS types, errors, capability schemas
 │   ├── mcs-conformance/            # (planned) adapter conformance suite
 │   ├── mcp-docker/                 # (planned) Docker MCS profile server
 │   ├── mcp-kubernetes/             # (planned) Kubernetes MCS profile server
 │   └── marketplace/                # (planned) connector catalog + install
+│
+├── netlify/
+│   └── functions/                  # AI chat, MCP builder API
 │
 ├── infra/
 │   └── pulumi/                     # Checked-in / generated Pulumi stacks

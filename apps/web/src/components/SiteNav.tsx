@@ -1,14 +1,18 @@
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../auth/AuthProvider";
 
 const links = [
   { to: "/", label: "Home", end: true },
   { to: "/chat", label: "AI Builder" },
+  { to: "/mcp", label: "MCP Builder" },
   { to: "/workspace", label: "IDE" },
   { to: "/cloud", label: "Cloud" },
   { to: "/design-prompts", label: "Figma Prompts" },
 ];
 
 export function SiteNav() {
+  const { user, logout, loading } = useAuth();
+
   return (
     <nav className="fixed top-0 z-40 flex h-14 w-full items-center justify-between border-b border-border bg-bg/80 px-6 backdrop-blur-xl">
       <div className="flex items-center gap-8">
@@ -33,10 +37,25 @@ export function SiteNav() {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <NavLink to="/login" className="dv-btn-secondary px-3 py-1.5 text-sm">
-          Sign in
-        </NavLink>
-        <NavLink to="/chat" className="dv-btn-primary px-4 py-1.5 text-sm">
+        {!loading && user ? (
+          <>
+            <span className="hidden text-xs text-text-muted sm:inline">
+              {user.name ?? user.email}
+            </span>
+            <button
+              type="button"
+              className="dv-btn-secondary px-3 py-1.5 text-sm"
+              onClick={() => void logout()}
+            >
+              Sign out
+            </button>
+          </>
+        ) : (
+          <NavLink to="/login" className="dv-btn-secondary px-3 py-1.5 text-sm">
+            Sign in
+          </NavLink>
+        )}
+        <NavLink to={user ? "/chat" : "/signup"} className="dv-btn-primary px-4 py-1.5 text-sm">
           Start building
         </NavLink>
       </div>

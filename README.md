@@ -27,7 +27,18 @@ make prd-validate          # tags + PRD ↔ yaml sync
 make agents-run            # mocked plan via orchestration loop
 make agents-apply APPROVED=1
 make demo                  # fuller mocked apply + scale demo
+make web-dev               # Vite + Netlify Functions (auth, AI, MCP builder)
 ```
+
+### Auth · AI · MCP Builder
+
+| Surface | Path |
+|---|---|
+| Sign in / Sign up | `/login`, `/signup` — Netlify Identity (local session fallback) |
+| AI Builder | `/chat` — Claude + Codex via `/api/ai/chat` |
+| MCP Server Builder | `/mcp` — compose servers with **Cloud plugin** |
+
+Enable Netlify Identity + AI Features on the site for production auth and AI Gateway. Locally, auth uses a demo session store; AI falls back with a clear message if Gateway keys are missing.
 
 ## Required feature prompt
 
@@ -53,10 +64,13 @@ Sample filled prompt: [`prompts/features/cloudflare-first-deployment-flow.md`](p
 | `@devibe/project-config` | Schema, parser, linkage evaluation |
 | `@devibe/cloud-providers` | `CloudProviderInterface` + mocked adapters |
 | `@devibe/iac-templates` | Pulumi Cloudflare generator |
-| `@devibe/mcp-server` | `manage_project` / `sync_from_prd` + agent stubs |
+| `@devibe/auth` | Netlify Identity + local session fallback |
+| `@devibe/mcp-builder` | MCP server composer + Cloud / Supabase / Docker / K8s plugins |
+| `@devibe/mcp-server` | `manage_project` / `sync_from_prd` + optional cloud plugin tools |
 
 | `/` | Landing |
-| `/chat` | AI Builder chat (LLM prompt screen) |
+| `/chat` | AI Builder (Claude / Codex) |
+| `/mcp` | MCP Server Builder + Cloud plugin |
 | `/login` · `/signup` | Auth flow |
 | `/workspace` | IDE + dual preview |
 | `/cloud` | Cloud distribution |
