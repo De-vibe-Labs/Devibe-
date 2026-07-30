@@ -16,15 +16,10 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route
-            path="/chat"
-            element={
-              <RequireAuth>
-                <ChatPage />
-              </RequireAuth>
-            }
-          />
+          {/* Chat prompt is the product entry — no auth gate */}
+          <Route path="/" element={<ChatPage />} />
+          <Route path="/chat" element={<Navigate to="/" replace />} />
+          <Route path="/home" element={<LandingPage />} />
           <Route
             path="/mcp"
             element={

@@ -6,9 +6,11 @@ Vite + React + TypeScript web app ported from the DeVibe HTML mockups.
 
 | Path | Screen |
 |---|---|
-| `/` | Landing |
-| `/chat` | AI Builder chat (LLM prompt screen) |
+| `/` | AI Builder chat prompt (product entry) |
+| `/chat` | Redirects to `/` |
+| `/home` | Marketing landing |
 | `/login` · `/signup` | Auth flow |
+| `/mcp` | MCP Server Builder |
 | `/workspace` | Monaco-style IDE + dual preview |
 | `/cloud` | Cloud distribution & deployment |
 | `/design-prompts` | Copy Figma Make UI prompts |
