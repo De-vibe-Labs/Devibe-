@@ -6,7 +6,7 @@
   "description": "DeVibe Vite + React web app (landing, workspace, orchestration, fleet).",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "pnpm --filter @devibe/project-config --filter @devibe/cloud-providers --filter @devibe/auth --filter @devibe/mcp-builder run build && tsc -b && vite build",
     "typecheck": "tsc -b --pretty false",
     "lint": "oxlint",
     "preview": "vite preview",
