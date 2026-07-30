@@ -34,11 +34,11 @@ make web-dev               # Vite + Netlify Functions (auth, AI, MCP builder)
 
 | Surface | Path |
 |---|---|
-| Sign in / Sign up | `/login`, `/signup` — Netlify Identity (local session fallback) |
+| Sign in / Sign up | `/login`, `/signup` — Firebase Google (preferred) → Netlify Identity → local |
 | AI Builder (home) | `/` — Claude + Codex via `/api/ai/chat` |
 | MCP Server Builder | `/mcp` — compose servers with **Cloud plugin** |
 
-Enable Netlify Identity + AI Features on the site for production auth and AI Gateway. Locally, auth uses a demo session store; AI falls back with a clear message if Gateway keys are missing.
+Set `VITE_FIREBASE_*` for Firebase Google Sign-In (see `.env.example`). Without Firebase, Netlify Identity is used after deploy; locally auth falls back to a demo session store. Enable AI Features on Netlify for the AI Gateway.
 
 ## Required feature prompt
 
@@ -64,7 +64,7 @@ Sample filled prompt: [`prompts/features/cloudflare-first-deployment-flow.md`](p
 | `@devibe/project-config` | Schema, parser, linkage evaluation |
 | `@devibe/cloud-providers` | `CloudProviderInterface` + mocked adapters |
 | `@devibe/iac-templates` | Pulumi Cloudflare generator |
-| `@devibe/auth` | Netlify Identity + local session fallback |
+| `@devibe/auth` | Firebase Google Sign-In + Netlify Identity + local fallback |
 | `@devibe/mcp-builder` | MCP server composer + Cloud / Supabase / Docker / K8s plugins |
 | `@devibe/mcp-server` | `manage_project` / `sync_from_prd` + optional cloud plugin tools |
 

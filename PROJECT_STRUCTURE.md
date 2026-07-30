@@ -37,7 +37,7 @@
 │   ├── agents/                     # Shared agent prompt registry
 │   ├── ui/                         # Design system
 │   ├── database/                   # Drizzle → Supabase Postgres
-│   ├── auth/                       # @devibe/auth — Netlify Identity + local fallback
+│   ├── auth/                       # @devibe/auth — Firebase Google + Netlify Identity + local
 │   ├── mcp-builder/                # @devibe/mcp-builder — MCP server composer + cloud plugin
 │   ├── supabase/                   # (planned) provision + Supabase MCP tools
 │   ├── mcs-core/                   # (planned) MCS types, errors, capability schemas
