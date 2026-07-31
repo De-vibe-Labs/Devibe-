@@ -2,7 +2,7 @@
   "name": "@devibe/auth",
   "version": "0.1.0",
   "private": true,
-  "description": "DeVibe auth helpers — Netlify Identity with local session fallback for Vite-only dev.",
+  "description": "DeVibe auth helpers — Firebase Google Sign-In, Netlify Identity, and local session fallback.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,7 +20,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@netlify/identity": "^1.0.0"
+    "@netlify/identity": "^1.0.0",
+    "firebase": "^11.10.0"
   },
   "devDependencies": {
     "typescript": "^5.7.2",

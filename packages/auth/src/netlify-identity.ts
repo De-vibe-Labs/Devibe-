@@ -1,12 +1,12 @@
 import {
-  getUser as identityGetUser,
-  login as identityLogin,
-  logout as identityLogout,
-  signup as identitySignup,
-  oauthLogin as identityOauthLogin,
-  handleAuthCallback as identityHandleAuthCallback,
-  onAuthChange as identityOnAuthChange,
-  getSettings as identityGetSettings,
+  getUser as identitySdkGetUser,
+  login as identitySdkLogin,
+  logout as identitySdkLogout,
+  signup as identitySdkSignup,
+  oauthLogin as identitySdkOauthLogin,
+  handleAuthCallback as identitySdkHandleAuthCallback,
+  onAuthChange as identitySdkOnAuthChange,
+  getSettings as identitySdkGetSettings,
   AUTH_EVENTS,
   AuthError as IdentityAuthError,
   MissingIdentityError,
@@ -14,17 +14,9 @@ import {
 } from "@netlify/identity";
 import type { AuthProviderId, AuthSettings, AuthUser } from "./types.js";
 import { AuthError } from "./types.js";
-import {
-  localGetUser,
-  localLogin,
-  localLogout,
-  localOAuthLogin,
-  localSignup,
-} from "./local-session.js";
 
 export { AUTH_EVENTS };
 
-let preferredMode: "auto" | "identity" | "local" = "auto";
 let cachedIdentityAvailable: boolean | null = null;
 
 function mapUser(raw: IdentityUser | null | undefined): AuthUser | null {
@@ -48,23 +40,15 @@ function wrapIdentityError(err: unknown): never {
   throw new AuthError(err instanceof Error ? err.message : String(err));
 }
 
-export function setAuthMode(mode: "auto" | "identity" | "local"): void {
-  preferredMode = mode;
+/** Reset the Netlify Identity availability cache (tests / mode switches). */
+export function resetIdentityProbeCache(): void {
   cachedIdentityAvailable = null;
 }
 
-export async function probeIdentity(): Promise<boolean> {
-  if (preferredMode === "local") {
-    cachedIdentityAvailable = false;
-    return false;
-  }
-  if (preferredMode === "identity") {
-    cachedIdentityAvailable = true;
-    return true;
-  }
+export async function probeNetlifyIdentity(): Promise<boolean> {
   if (cachedIdentityAvailable !== null) return cachedIdentityAvailable;
   try {
-    await identityGetSettings();
+    await identitySdkGetSettings();
     cachedIdentityAvailable = true;
   } catch (err) {
     if (err instanceof MissingIdentityError || err instanceof IdentityAuthError) {
@@ -76,23 +60,27 @@ export async function probeIdentity(): Promise<boolean> {
   return cachedIdentityAvailable;
 }
 
-export async function getAuthSettings(): Promise<AuthSettings> {
-  const available = await probeIdentity();
+export async function identityGetAuthSettings(): Promise<AuthSettings> {
+  const available = await probeNetlifyIdentity();
   if (!available) {
     return {
       autoconfirm: true,
       disableSignup: false,
       providers: { github: true, google: true },
       identityAvailable: false,
+      firebaseAvailable: false,
+      backend: "local",
     };
   }
   try {
-    const settings = await identityGetSettings();
+    const settings = await identitySdkGetSettings();
     return {
       autoconfirm: Boolean(settings.autoconfirm),
       disableSignup: Boolean(settings.disableSignup),
       providers: settings.providers as AuthSettings["providers"],
       identityAvailable: true,
+      firebaseAvailable: false,
+      backend: "identity",
     };
   } catch {
     return {
@@ -100,23 +88,23 @@ export async function getAuthSettings(): Promise<AuthSettings> {
       disableSignup: false,
       providers: { github: true, google: true },
       identityAvailable: false,
+      firebaseAvailable: false,
+      backend: "local",
     };
   }
 }
 
-export async function getUser(): Promise<AuthUser | null> {
-  if (!(await probeIdentity())) return localGetUser();
+export async function identityGetUser(): Promise<AuthUser | null> {
   try {
-    return mapUser(await identityGetUser());
+    return mapUser(await identitySdkGetUser());
   } catch {
-    return localGetUser();
+    return null;
   }
 }
 
-export async function login(email: string, password: string): Promise<AuthUser> {
-  if (!(await probeIdentity())) return localLogin(email, password);
+export async function identityLogin(email: string, password: string): Promise<AuthUser> {
   try {
-    const user = mapUser(await identityLogin(email, password));
+    const user = mapUser(await identitySdkLogin(email, password));
     if (!user) throw new AuthError("Login failed.", 401);
     return user;
   } catch (err) {
@@ -124,15 +112,14 @@ export async function login(email: string, password: string): Promise<AuthUser> 
   }
 }
 
-export async function signup(
+export async function identitySignup(
   email: string,
   password: string,
   name?: string,
 ): Promise<AuthUser> {
-  if (!(await probeIdentity())) return localSignup(email, password, name);
   try {
     const user = mapUser(
-      await identitySignup(email, password, name ? { full_name: name } : undefined),
+      await identitySdkSignup(email, password, name ? { full_name: name } : undefined),
     );
     if (!user) throw new AuthError("Signup failed.", 400);
     return user;
@@ -141,35 +128,20 @@ export async function signup(
   }
 }
 
-export async function logout(): Promise<void> {
-  if (!(await probeIdentity())) {
-    localLogout();
-    return;
-  }
-  try {
-    await identityLogout();
-  } catch {
-    localLogout();
-  }
+export async function identityLogout(): Promise<void> {
+  await identitySdkLogout();
 }
 
-export async function oauthLogin(provider: AuthProviderId): Promise<AuthUser | void> {
-  if (!(await probeIdentity())) {
-    if (provider === "github" || provider === "google") {
-      return localOAuthLogin(provider);
-    }
-    throw new AuthError(`Provider ${provider} is not available in local mode.`, 400);
-  }
-  identityOauthLogin(provider);
+export function identityOauthLogin(provider: AuthProviderId): void {
+  identitySdkOauthLogin(provider);
 }
 
-export async function handleAuthCallback(): Promise<{
+export async function identityHandleAuthCallback(): Promise<{
   type: string;
   user: AuthUser | null;
 } | null> {
-  if (!(await probeIdentity())) return null;
   try {
-    const result = await identityHandleAuthCallback();
+    const result = await identitySdkHandleAuthCallback();
     if (!result) return null;
     return {
       type: result.type,
@@ -180,15 +152,10 @@ export async function handleAuthCallback(): Promise<{
   }
 }
 
-export function onAuthChange(
+export function identityOnAuthChange(
   listener: (event: string, user: AuthUser | null) => void,
 ): () => void {
-  let unsub: (() => void) | undefined;
-  void (async () => {
-    if (!(await probeIdentity())) return;
-    unsub = identityOnAuthChange((event, user) => {
-      listener(String(event), mapUser(user));
-    });
-  })();
-  return () => unsub?.();
+  return identitySdkOnAuthChange((event, user) => {
+    listener(String(event), mapUser(user));
+  });
 }

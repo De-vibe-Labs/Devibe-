@@ -1,8 +1,16 @@
-export type { AuthUser, AuthSettings, AuthProviderId, AuthMode } from "./types.js";
+export type {
+  AuthUser,
+  AuthSettings,
+  AuthProviderId,
+  AuthMode,
+  AuthBackend,
+} from "./types.js";
 export { AuthError } from "./types.js";
+export type { PreferredAuthMode, ResolvedAuthBackend } from "./auth-client.js";
 export {
   AUTH_EVENTS,
   setAuthMode,
+  resolveAuthBackend,
   probeIdentity,
   getAuthSettings,
   getUser,
@@ -12,7 +20,7 @@ export {
   oauthLogin,
   handleAuthCallback,
   onAuthChange,
-} from "./netlify-identity.js";
+} from "./auth-client.js";
 export {
   localGetUser,
   localLogin,
@@ -21,3 +29,10 @@ export {
   localOAuthLogin,
   hashPassword,
 } from "./local-session.js";
+export {
+  isFirebaseConfigured,
+  resolveFirebaseConfig,
+  mapFirebaseUser,
+  setFirebaseConfigOverride,
+  type FirebaseWebConfig,
+} from "./firebase-auth.js";

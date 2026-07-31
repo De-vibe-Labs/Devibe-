@@ -74,9 +74,13 @@ export function AuthPage({ initial = "login" }: { initial?: AuthView }) {
   }
 
   const displayError = formError || error;
-  const identityNote = settings && !settings.identityAvailable
-    ? "Local demo auth (Netlify Identity activates after deploy)."
-    : null;
+  const identityNote = !settings
+    ? null
+    : settings.backend === "firebase"
+      ? "Signed in with Firebase (Google Sign-In enabled)."
+      : settings.backend === "local"
+        ? "Local demo auth — set VITE_FIREBASE_* for Google Sign-In, or deploy with Netlify Identity."
+        : null;
 
   return (
     <div className="orb-bg grain flex min-h-screen items-center justify-center px-4 py-16">
@@ -107,6 +111,8 @@ export function AuthPage({ initial = "login" }: { initial?: AuthView }) {
             busy={busy}
             error={displayError}
             note={identityNote}
+            showGithub={settings?.providers.github !== false}
+            showGoogle={settings?.providers.google !== false}
           >
             <form className="space-y-3" onSubmit={onLogin}>
               <Field
@@ -156,6 +162,8 @@ export function AuthPage({ initial = "login" }: { initial?: AuthView }) {
             busy={busy}
             error={displayError}
             note={identityNote}
+            showGithub={settings?.providers.github !== false}
+            showGoogle={settings?.providers.google !== false}
           >
             <form className="space-y-3" onSubmit={onSignup}>
               <Field label="Name" type="text" autoComplete="name" value={name} onChange={setName} />
@@ -205,7 +213,14 @@ export function AuthPage({ initial = "login" }: { initial?: AuthView }) {
               {user?.email ?? "OAuth"} ready for agent lifecycle management.
             </p>
             <div className="flex flex-wrap justify-center gap-2">
-              <span className="dv-tag">github-connected</span>
+              {user?.provider === "google" ? (
+                <span className="dv-tag">google-connected</span>
+              ) : (
+                <span className="dv-tag">github-connected</span>
+              )}
+              {settings?.backend === "firebase" ? (
+                <span className="dv-tag">firebase-auth</span>
+              ) : null}
               <span className="dv-tag">cloud-enabled</span>
               <span className="dv-tag">auto-scale</span>
             </div>
@@ -262,6 +277,8 @@ function AuthCard({
   busy,
   error,
   note,
+  showGithub = true,
+  showGoogle = true,
 }: {
   title: string;
   children: ReactNode;
@@ -270,6 +287,8 @@ function AuthCard({
   busy: boolean;
   error: string | null;
   note: string | null;
+  showGithub?: boolean;
+  showGoogle?: boolean;
 }) {
   return (
     <div className="dv-card p-6">
@@ -287,24 +306,28 @@ function AuthCard({
         <div className="h-px flex-1 bg-border" />
       </div>
       <div className="space-y-2">
-        <button
-          type="button"
-          disabled={busy}
-          className="dv-btn-secondary w-full py-2.5 text-sm disabled:opacity-50"
-          onClick={() => onOAuth("github")}
-        >
-          <Icon name="code" className="text-base" />
-          Continue with GitHub
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          className="dv-btn-secondary w-full py-2.5 text-sm disabled:opacity-50"
-          onClick={() => onOAuth("google")}
-        >
-          <Icon name="language" className="text-base" />
-          Continue with Google
-        </button>
+        {showGithub ? (
+          <button
+            type="button"
+            disabled={busy}
+            className="dv-btn-secondary w-full py-2.5 text-sm disabled:opacity-50"
+            onClick={() => onOAuth("github")}
+          >
+            <Icon name="code" className="text-base" />
+            Continue with GitHub
+          </button>
+        ) : null}
+        {showGoogle ? (
+          <button
+            type="button"
+            disabled={busy}
+            className="dv-btn-secondary w-full py-2.5 text-sm disabled:opacity-50"
+            onClick={() => onOAuth("google")}
+          >
+            <Icon name="language" className="text-base" />
+            Continue with Google
+          </button>
+        ) : null}
       </div>
       <p className="mt-5 text-center text-xs text-text-muted">{footer}</p>
     </div>
