@@ -23,6 +23,8 @@ export interface FirebaseWebConfig {
   appId: string;
   messagingSenderId?: string;
   storageBucket?: string;
+  /** Optional Google Analytics measurement id (G-…) */
+  measurementId?: string;
 }
 
 type EnvLike = Record<string, string | undefined>;
@@ -64,10 +66,12 @@ export function resolveFirebaseConfig(env: EnvLike = readEnv()): FirebaseWebConf
     appId,
     messagingSenderId: envValue(env, "FIREBASE_MESSAGING_SENDER_ID"),
     storageBucket: envValue(env, "FIREBASE_STORAGE_BUCKET"),
+    measurementId: envValue(env, "FIREBASE_MEASUREMENT_ID"),
   };
 }
 
 export function isFirebaseConfigured(env: EnvLike = readEnv()): boolean {
+  if (configOverride !== undefined) return configOverride !== null;
   return resolveFirebaseConfig(env) !== null;
 }
 

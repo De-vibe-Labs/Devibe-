@@ -14,11 +14,12 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@devibe/auth": "workspace:*",
+    "@devibe/mcp-builder": "workspace:*",
+    "firebase": "^11.10.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-router-dom": "^7.18.1",
-    "@devibe/auth": "workspace:*",
-    "@devibe/mcp-builder": "workspace:*"
+    "react-router-dom": "^7.18.1"
   },
   "devDependencies": {
     "@netlify/vite-plugin": "^2.7.14",
