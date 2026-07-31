@@ -21,6 +21,7 @@ describe("firebase config resolution", () => {
       appId: "1:2:web:3",
       messagingSenderId: undefined,
       storageBucket: undefined,
+      measurementId: undefined,
     });
   });
 
@@ -32,8 +33,10 @@ describe("firebase config resolution", () => {
       FIREBASE_APP_ID: "1:2:web:3",
       FIREBASE_MESSAGING_SENDER_ID: "123",
       FIREBASE_STORAGE_BUCKET: "app.appspot.com",
+      FIREBASE_MEASUREMENT_ID: "G-TEST",
     });
     expect(config?.messagingSenderId).toBe("123");
     expect(config?.storageBucket).toBe("app.appspot.com");
+    expect(config?.measurementId).toBe("G-TEST");
   });
 });
