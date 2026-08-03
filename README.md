@@ -35,10 +35,11 @@ make web-dev               # Vite + Netlify Functions (auth, AI, MCP builder)
 | Surface | Path |
 |---|---|
 | Sign in / Sign up | `/login`, `/signup` — Firebase Google (preferred) → Netlify Identity → local |
-| AI Builder (home) | `/` — Claude + Codex via `/api/ai/chat` |
+| AI Builder (home) | `/` — Claude plans · Codex generates via `/api/ai/chat` + `/api/ai/generate` |
 | MCP Server Builder | `/mcp` — compose servers with **Cloud plugin** |
+| IDE dual preview | `/workspace` — desktop + 390px mobile iframes of the generated build |
 
-Set `VITE_FIREBASE_*` for Firebase Google Sign-In (see `.env.example`). Without Firebase, Netlify Identity is used after deploy; locally auth falls back to a demo session store. Enable AI Features on Netlify for the AI Gateway.
+Set `VITE_FIREBASE_*` for Firebase Google Sign-In (see `.env.example`). Without Firebase, Netlify Identity is used after deploy; locally auth falls back to a demo session store. Enable AI Features on Netlify for live Claude / Codex; otherwise the local code generator still produces previewable apps.
 
 ## Required feature prompt
 
@@ -72,7 +73,7 @@ Sample filled prompt: [`prompts/features/cloudflare-first-deployment-flow.md`](p
 | `/home` | Marketing landing |
 | `/mcp` | MCP Server Builder + Cloud plugin |
 | `/login` · `/signup` | Auth flow |
-| `/workspace` | IDE + dual preview |
+| `/workspace` | IDE + live desktop & mobile previews |
 | `/cloud` | Cloud distribution |
 | `/design-prompts` | Copy Figma UI prompts |
 | `/orchestration` | Topology + MCP tools |

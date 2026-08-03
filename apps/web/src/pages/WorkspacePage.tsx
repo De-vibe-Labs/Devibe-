@@ -1,137 +1,161 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../components/SiteNav";
+import { DualPreview } from "../components/DualPreview";
+import {
+  loadGeneratedProject,
+  updateProjectFile,
+  type GeneratedProject,
+} from "../lib/generated-project";
 
-const files = [
-  { name: ".devibe", kind: "folder", status: "" },
-  { name: "config.yaml", kind: "file", status: "M", indent: true },
-  { name: "src", kind: "folder", status: "" },
-  { name: "index.tsx", kind: "file", status: "A", indent: true },
-  { name: "AgentOrb.tsx", kind: "file", status: "U", indent: true, active: true },
-  { name: "package.json", kind: "file", status: "" },
-  { name: "README.md", kind: "file", status: "" },
-];
-
-const codeLines = [
-  "import { motion } from 'framer-motion'",
-  "",
-  "export function AgentOrb() {",
-  "  return (",
-  "    <motion.div",
-  "      className=\"orb\"",
-  "      animate={{ scale: [1, 1.08, 1], opacity: [0.85, 1, 0.85] }}",
-  "      transition={{ repeat: Infinity, duration: 2.4 }}",
-  "    />",
-  "  )",
-  "}",
-  "",
-  "// DeVibe AI: Added sophisticated glow transition",
-];
+type Pane = "code" | "preview" | "split";
 
 export function WorkspacePage() {
+  const [project, setProject] = useState<GeneratedProject | null>(null);
+  const [activePath, setActivePath] = useState<string>("index.html");
+  const [pane, setPane] = useState<Pane>("split");
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    const loaded = loadGeneratedProject();
+    setProject(loaded);
+    if (loaded) setActivePath(loaded.entry || loaded.files[0]?.path || "index.html");
+  }, []);
+
+  const activeFile = useMemo(
+    () => project?.files.find((f) => f.path === activePath) ?? project?.files[0],
+    [project, activePath],
+  );
+
+  function onEdit(content: string) {
+    if (!project || !activeFile) return;
+    setDirty(true);
+    const next = updateProjectFile(project, activeFile.path, content);
+    setProject(next);
+  }
+
+  if (!project) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg px-4 text-text">
+        <Icon name="code" className="text-3xl text-primary" />
+        <h1 className="text-xl font-semibold">No generated app yet</h1>
+        <p className="max-w-md text-center text-sm text-text-muted">
+          Ask the AI Builder to generate a website or app. Codex runs the code generator and
+          opens desktop + mobile previews here.
+        </p>
+        <Link to="/" className="dv-btn-primary px-4 py-2 text-sm">
+          Open AI Builder
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen flex-col bg-[#09090B] text-on-surface">
-      <header className="flex h-14 items-center justify-between border-b border-outline-variant/50 px-4">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="font-display text-sm font-bold text-primary">
+    <div className="flex h-screen flex-col bg-bg text-text">
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link to="/" className="text-sm font-semibold text-primary">
             DeVibe Workspace
           </Link>
-          <span className="text-outline">/</span>
-          <span className="font-mono text-xs text-on-surface-variant">Genesis-Alpha</span>
-        </div>
-        <div className="hidden items-center gap-2 rounded-full border border-primary/30 bg-primary-container/15 px-3 py-1 text-xs text-primary md:flex">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-          Frontend Agent is refining styles…
+          <span className="text-text-subtle">/</span>
+          <span className="truncate font-mono text-xs text-text-muted">{project.title}</span>
+          {project.mock ? (
+            <span className="dv-tag hidden sm:inline">local generator</span>
+          ) : (
+            <span className="dv-tag hidden sm:inline">{project.modelLabel ?? project.modelId}</span>
+          )}
         </div>
         <div className="flex items-center gap-2">
-          <button className="rounded-md border border-outline-variant px-3 py-1.5 text-xs">
-            Code
-          </button>
-          <button className="rounded-md border border-outline-variant px-3 py-1.5 text-xs text-on-surface-variant">
-            Preview
-          </button>
-          <button className="rounded-md bg-primary-container px-3 py-1.5 text-xs font-bold text-on-primary-container">
+          {(
+            [
+              ["code", "Code"],
+              ["preview", "Preview"],
+              ["split", "Split"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setPane(id)}
+              className={`rounded-md px-3 py-1.5 text-xs ${
+                pane === id
+                  ? "bg-primary-soft text-primary"
+                  : "border border-border text-text-muted"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+          <Link to="/" className="dv-btn-secondary px-3 py-1.5 text-xs">
+            Chat
+          </Link>
+          <Link to="/cloud" className="dv-btn-primary px-3 py-1.5 text-xs">
             Deploy
-          </button>
-          <button className="rounded-md bg-surface-container-high px-3 py-1.5 text-xs">Run</button>
+          </Link>
         </div>
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[220px_1fr_320px]">
-        <aside className="border-r border-outline-variant/40 bg-surface-deep p-3 font-mono text-xs">
-          <p className="mb-3 text-[10px] uppercase tracking-widest text-on-surface-variant">
-            GENESIS-ALPHA
-          </p>
+      <div
+        className={`grid min-h-0 flex-1 ${
+          pane === "split"
+            ? "grid-cols-1 lg:grid-cols-[200px_1fr_360px]"
+            : pane === "code"
+              ? "grid-cols-1 lg:grid-cols-[200px_1fr]"
+              : "grid-cols-1 lg:grid-cols-[200px_1fr]"
+        }`}
+      >
+        <aside className="border-r border-border bg-surface p-3 font-mono text-xs overflow-auto">
+          <p className="mb-2 text-[10px] uppercase tracking-widest text-text-subtle">Files</p>
           <ul className="space-y-1">
-            {files.map((f) => (
-              <li
-                key={f.name + f.kind}
-                className={`flex items-center gap-2 rounded px-2 py-1 ${
-                  f.active ? "bg-primary-container/30 text-primary" : "text-on-surface-variant"
-                } ${f.indent ? "ml-3" : ""}`}
-              >
-                <Icon name={f.kind === "folder" ? "folder" : "description"} className="text-sm" />
-                <span className="flex-1">{f.name}</span>
-                {f.status ? <span className="text-[10px] text-warning">{f.status}</span> : null}
+            {project.files.map((f) => (
+              <li key={f.path}>
+                <button
+                  type="button"
+                  onClick={() => setActivePath(f.path)}
+                  className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left ${
+                    f.path === activeFile?.path
+                      ? "bg-primary-soft text-primary"
+                      : "text-text-muted hover:bg-surface-elevated"
+                  }`}
+                >
+                  <Icon name="description" className="text-sm" />
+                  <span className="truncate">{f.path}</span>
+                </button>
               </li>
             ))}
           </ul>
+          <p className="mt-4 text-[11px] leading-relaxed text-text-subtle">
+            {project.summary}
+          </p>
         </aside>
 
-        <section className="flex min-h-[420px] flex-col border-r border-outline-variant/40">
-          <div className="border-b border-outline-variant/40 px-4 py-2 font-mono text-xs text-on-surface-variant">
-            AgentOrb.tsx
-          </div>
-          <pre className="flex-1 overflow-auto p-4 font-mono text-[12px] leading-6">
-            {codeLines.map((line, i) => (
-              <div
-                key={i}
-                className={`flex gap-4 ${
-                  line.includes("DeVibe AI")
-                    ? "my-1 rounded bg-surface-container-high/80 px-2"
-                    : ""
-                }`}
-              >
-                <span className="w-6 select-none text-right text-outline">{i + 1}</span>
-                <code>{line || " "}</code>
-              </div>
-            ))}
-          </pre>
-          <div className="flex items-center justify-between border-t border-outline-variant/40 px-4 py-2 text-[11px] text-on-surface-variant">
-            <span>Sync to GitHub (main) · 1 outgoing change</span>
-            <span>UTF-8 · TypeScript JSX</span>
-          </div>
-        </section>
+        {pane !== "preview" ? (
+          <section className="flex min-h-0 flex-col border-r border-border">
+            <div className="flex items-center justify-between border-b border-border px-4 py-2 font-mono text-xs text-text-muted">
+              <span>{activeFile?.path}</span>
+              <span>{dirty ? "Edited · preview live" : "Synced"}</span>
+            </div>
+            <textarea
+              className="min-h-[320px] flex-1 resize-none bg-bg p-4 font-mono text-[12px] leading-6 text-text outline-none"
+              value={activeFile?.content ?? ""}
+              onChange={(e) => onEdit(e.target.value)}
+              spellCheck={false}
+            />
+            <div className="flex items-center justify-between border-t border-border px-4 py-2 text-[11px] text-text-subtle">
+              <span>Desktop + mobile iframes share this build</span>
+              <span>UTF-8 · {activeFile?.language ?? "text"}</span>
+            </div>
+          </section>
+        ) : null}
 
-        <aside className="flex flex-col gap-3 bg-surface-deep p-3">
-          <div className="glass flex-1 rounded-xl p-4">
-            <p className="mb-2 font-mono text-[10px] text-on-surface-variant">
-              devibe.app/preview/genesis-alpha
-            </p>
-            <div className="flex h-40 flex-col items-center justify-center rounded-lg bg-surface-container-lowest">
-              <div className="mb-3 h-12 w-12 animate-pulse-soft rounded-full bg-primary-container shadow-[0_0_30px_rgba(110,60,251,0.55)]" />
-              <p className="font-display text-sm text-white">Genesis Alpha</p>
-              <p className="mt-1 px-4 text-center text-xs text-on-surface-variant">
-                The orchestrator is online and processing data flows.
-              </p>
-            </div>
-          </div>
-          <div className="glass rounded-xl p-4">
-            <p className="mb-2 text-xs text-on-surface-variant">Mobile preview</p>
-            <div className="mx-auto h-48 w-28 rounded-2xl border border-outline-variant bg-surface-container-lowest p-3">
-              <p className="font-display text-xs text-white">Genesis</p>
-              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-container-high">
-                <div className="h-full w-2/3 bg-primary" />
-              </div>
-            </div>
-          </div>
-          <Link
-            to="/orchestration"
-            className="fixed right-6 bottom-6 flex h-14 w-14 items-center justify-center rounded-full bg-primary-container text-on-primary-container shadow-[0_0_28px_rgba(110,60,251,0.5)] lg:static lg:h-12 lg:w-full lg:rounded-xl"
-            aria-label="Open orchestration"
-          >
-            <Icon name="smart_toy" />
-          </Link>
-        </aside>
+        {pane !== "code" ? (
+          <aside className={`min-h-0 overflow-auto bg-surface p-3 ${pane === "preview" ? "" : ""}`}>
+            <DualPreview
+              html={project.previewHtml}
+              urlLabel={`devibe.app/preview/${project.id.slice(0, 8)}`}
+            />
+          </aside>
+        ) : null}
       </div>
     </div>
   );
