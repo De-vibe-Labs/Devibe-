@@ -13,11 +13,11 @@ export function LandingPage() {
               Beta: v2.4 Orchestration Engine is now live
             </div>
             <h1 className="bg-gradient-to-b from-white to-white/55 bg-clip-text font-display text-5xl font-bold leading-[1.08] tracking-tight text-transparent md:text-7xl">
-              De Vibe
+              Monaco Cloud
             </h1>
             <p className="mx-auto max-w-2xl text-lg text-on-surface-variant md:text-xl">
-              Turn any idea into production-ready software. Autonomous agents plan, provision, and
-              scale Cloudflare-first infrastructure from a tagged PRD.
+              Build. Deploy. Scale. Anywhere. — AI Cloud OS powered by Monaco Editor, MCP, and
+              autonomous DevOps agents.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 pt-2 sm:flex-row">
               <Link

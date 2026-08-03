@@ -38,7 +38,10 @@
 │   ├── ui/                         # Design system
 │   ├── database/                   # Drizzle → Supabase Postgres
 │   ├── auth/                       # @devibe/auth — Firebase Google + Netlify Identity + local
-│   ├── mcp-builder/                # @devibe/mcp-builder — MCP server composer + cloud plugin
+│   ├── mcp-builder/                # @devibe/mcp-builder — MCP composer + multi-lang templates
+│   ├── mcp-marketplace/            # @devibe/mcp-marketplace — Universal MCP catalog
+│   ├── qr-access/                  # @devibe/qr-access — signed QR pairing (no credentials)
+│   ├── cli/                        # @devibe/cli — first-party `monaco` CLI
 │   ├── supabase/                   # (planned) provision + Supabase MCP tools
 │   ├── mcs-core/                   # (planned) MCS types, errors, capability schemas
 │   ├── mcs-conformance/            # (planned) adapter conformance suite

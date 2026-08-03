@@ -7,3 +7,4 @@
 | [Supabase default backend](./SUPABASE_DEFAULT_BACKEND.md) | Hybrid data plane (Supabase) + MCS compute |
 | [Agentic infrastructure](./AGENTIC_INFRASTRUCTURE.md) | Specialised ops agents and production loop |
 | [Marketplace](./MARKETPLACE.md) | One-click connectors → MCP tool registration |
+| [Monaco Cloud](./MONACO_CLOUD.md) | AI Cloud OS — Monaco IDE, CLI, QR, modules |
