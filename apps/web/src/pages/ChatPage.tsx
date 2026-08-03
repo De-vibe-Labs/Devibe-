@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "../components/SiteNav";
+import { apiGet, apiSend } from "../lib/api";
+import {
+  saveGeneratedProject,
+  type GeneratedProject,
+} from "../lib/generated-project";
 
 type AgentId =
   | "product"
@@ -25,8 +30,16 @@ interface ChatMessage {
   role: "user" | "agent";
   agentId?: AgentId;
   content: string;
-  kind?: "text" | "code" | "json" | "file";
+  kind?: "text" | "code" | "json" | "file" | "generated";
   streaming?: boolean;
+  projectId?: string;
+}
+
+interface AiModelOption {
+  id: string;
+  label: string;
+  kind: string;
+  role?: string;
 }
 
 const AGENTS: Agent[] = [
@@ -46,19 +59,19 @@ const PROJECTS = [
 ];
 
 const SUGGESTIONS = [
-  "Build a SaaS analytics dashboard with Cloudflare Workers + D1",
-  "Paste a PRD and provision multi-cloud adapters",
-  "Add Monaco IDE dual preview to my workspace",
-  "Generate Pulumi for edge-first deployment",
+  "Build a coastal cafe landing page with reservation CTA",
+  "Generate a SaaS analytics marketing site with pricing",
+  "Create a fitness app splash page optimized for mobile",
+  "Build a fintech wallet homepage with clear CTAs",
 ];
 
-const MODELS = [
-  { id: "claude-sonnet", label: "Claude Sonnet 4.5" },
-  { id: "claude-opus", label: "Claude Opus 4.6" },
-  { id: "claude-haiku", label: "Claude Haiku 4.5" },
-  { id: "gpt-5-codex", label: "GPT-5 Codex" },
-  { id: "gpt-5.1-codex", label: "GPT-5.1 Codex" },
-  { id: "gpt-5.2-codex", label: "GPT-5.2 Codex" },
+const FALLBACK_MODELS: AiModelOption[] = [
+  { id: "claude-sonnet", label: "Claude Sonnet 4.5", kind: "claude", role: "chat" },
+  { id: "claude-opus", label: "Claude Opus 4.6", kind: "claude", role: "chat" },
+  { id: "claude-haiku", label: "Claude Haiku 4.5", kind: "claude", role: "chat" },
+  { id: "gpt-5-codex", label: "GPT-5 Codex", kind: "codex", role: "codegen" },
+  { id: "gpt-5.1-codex", label: "GPT-5.1 Codex", kind: "codex", role: "codegen" },
+  { id: "gpt-5.2-codex", label: "GPT-5.2 Codex", kind: "codex", role: "codegen" },
 ];
 
 function detectTags(text: string): string[] {
@@ -76,16 +89,30 @@ function detectTags(text: string): string[] {
   return [...new Set(tags)];
 }
 
+/** Heuristic: user wants a generated website/app with previews. */
+export function isCodegenIntent(text: string): boolean {
+  const lower = text.toLowerCase();
+  const verbs = /\b(build|generate|create|make|scaffold|design|spin up)\b/;
+  const nouns =
+    /\b(app|website|web app|landing|page|site|ui|homepage|splash|marketing|dashboard|mobile)\b/;
+  if (verbs.test(lower) && nouns.test(lower)) return true;
+  if (/\b(preview|dual preview|mobile preview)\b/.test(lower)) return true;
+  if (/\bgenerate (the )?app\b/.test(lower)) return true;
+  return false;
+}
+
 export function ChatPage() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [model, setModel] = useState(MODELS[0].id);
+  const [models, setModels] = useState<AiModelOption[]>(FALLBACK_MODELS);
+  const [model, setModel] = useState(FALLBACK_MODELS[0].id);
   const [agents, setAgents] = useState(AGENTS);
   const [streaming, setStreaming] = useState(false);
   const [detectedTags, setDetectedTags] = useState<string[]>([]);
   const [aiMock, setAiMock] = useState(false);
+  const [lastProject, setLastProject] = useState<GeneratedProject | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const empty = messages.length === 0;
 
@@ -97,6 +124,22 @@ export function ChatPage() {
     setDetectedTags(detectTags(input));
   }, [input]);
 
+  useEffect(() => {
+    void (async () => {
+      try {
+        const data = await apiGet<{ models: AiModelOption[] }>("/api/ai/models");
+        if (data.models?.length) {
+          setModels(data.models);
+          setModel((prev) =>
+            data.models.some((m) => m.id === prev) ? prev : data.models[0].id,
+          );
+        }
+      } catch {
+        /* keep fallbacks */
+      }
+    })();
+  }, []);
+
   const activityLabel = useMemo(() => {
     const thinking = agents.find((a) => a.status === "thinking");
     if (thinking) return `${thinking.name} is working…`;
@@ -104,8 +147,94 @@ export function ChatPage() {
     return "All systems ready";
   }, [agents, streaming]);
 
+  const selectedModel = models.find((m) => m.id === model) ?? models[0];
+
   function setAgentStatus(id: AgentId, status: AgentStatus) {
     setAgents((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
+  }
+
+  async function generateApp(prompt: string) {
+    setAgentStatus("frontend", "thinking");
+    setAgentStatus("ux", "thinking");
+    const streamId = `gen-${Date.now()}`;
+    setMessages((m) => [
+      ...m,
+      {
+        id: streamId,
+        role: "agent",
+        agentId: "frontend",
+        content: "Running code generator for desktop + mobile previews…",
+        streaming: true,
+      },
+    ]);
+
+    try {
+      const data = await apiSend<{
+        title: string;
+        summary: string;
+        entry: string;
+        files: GeneratedProject["files"];
+        previewHtml: string;
+        model: { id: string; label: string };
+        mock?: boolean;
+      }>("/api/ai/generate", "POST", { prompt, model });
+
+      const project = saveGeneratedProject({
+        title: data.title,
+        summary: data.summary,
+        entry: data.entry,
+        files: data.files,
+        previewHtml: data.previewHtml,
+        prompt,
+        modelId: data.model.id,
+        modelLabel: data.model.label,
+        mock: data.mock,
+      });
+      setLastProject(project);
+      setAiMock(Boolean(data.mock));
+
+      const summary = [
+        `Generated **${data.title}** with ${data.files.length} file(s) via ${data.model.label}${data.mock ? " (local generator)" : ""}.`,
+        "",
+        data.summary,
+        "",
+        "Desktop + mobile (390px) previews are ready in the IDE.",
+        `Entry: ${data.entry}`,
+      ].join("\n");
+
+      setMessages((m) =>
+        m.map((msg) =>
+          msg.id === streamId
+            ? {
+                ...msg,
+                content: summary,
+                streaming: false,
+                kind: "generated",
+                projectId: project.id,
+              }
+            : msg,
+        ),
+      );
+      setAgentStatus("frontend", "online");
+      setAgentStatus("ux", "online");
+      return project;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setMessages((m) =>
+        m.map((msg) =>
+          msg.id === streamId
+            ? {
+                ...msg,
+                content: `Code generation failed: ${message}`,
+                streaming: false,
+              }
+            : msg,
+        ),
+      );
+      setAgentStatus("frontend", "idle");
+      setAgentStatus("ux", "idle");
+      return null;
+    }
   }
 
   async function sendPrompt(raw: string) {
@@ -123,6 +252,8 @@ export function ChatPage() {
     setAgentStatus("product", "thinking");
 
     const tags = detectTags(text);
+    const wantsCodegen = isCodegenIntent(text);
+
     const streamId = `a-${Date.now()}`;
     setMessages((m) => [
       ...m,
@@ -138,7 +269,7 @@ export function ChatPage() {
     let reply = "";
     try {
       const history = [...messages, userMsg]
-        .filter((m) => m.kind !== "json")
+        .filter((m) => m.kind !== "json" && m.kind !== "generated")
         .map((m) => ({
           role: (m.role === "user" ? "user" : "assistant") as "user" | "assistant",
           content: m.content,
@@ -150,22 +281,26 @@ export function ChatPage() {
         body: JSON.stringify({ model, messages: history }),
       });
       if (!res.ok) throw new Error(`AI API ${res.status}`);
-      const data = (await res.json()) as {
-        reply: string;
-        mock?: boolean;
-      };
+      const data = (await res.json()) as { reply: string; mock?: boolean };
       reply = data.reply;
       setAiMock(Boolean(data.mock));
     } catch {
-      reply = buildAgentReply(text, tags).join("");
+      reply = wantsCodegen
+        ? `I'll generate a polished responsive app for desktop and mobile previews next. Using the code generator (${selectedModel?.kind === "codex" ? selectedModel.label : "GPT-5.2 Codex"}).`
+        : buildAgentReply(text, tags);
       setAiMock(true);
+    }
+
+    if (wantsCodegen && !/generate|preview|ide/i.test(reply)) {
+      reply +=
+        "\n\nHanding off to the Frontend Agent to run the code generator and mount dual previews.";
     }
 
     const replyChunks = reply.split(/(\s+)/).filter(Boolean);
     let assembled = "";
     for (const chunk of replyChunks) {
       assembled += chunk;
-      await wait(12 + Math.random() * 24);
+      await wait(8 + Math.random() * 16);
       const snapshot = assembled;
       setMessages((m) =>
         m.map((msg) =>
@@ -179,9 +314,13 @@ export function ChatPage() {
     );
     setAgentStatus("product", "online");
 
+    if (wantsCodegen) {
+      await generateApp(text);
+    }
+
     if (tags.includes("cloud-enabled") || tags.includes("github-connected")) {
       setAgentStatus("devops", "thinking");
-      await wait(500);
+      await wait(400);
       setMessages((m) => [
         ...m,
         {
@@ -208,6 +347,11 @@ export function ChatPage() {
     setStreaming(false);
   }
 
+  function openIde(project?: GeneratedProject | null) {
+    if (project) setLastProject(project);
+    navigate("/workspace");
+  }
+
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     void sendPrompt(input);
@@ -222,13 +366,19 @@ export function ChatPage() {
 
   return (
     <div className="flex h-screen bg-bg text-text">
-      {/* Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface md:flex">
         <div className="flex h-14 items-center justify-between border-b border-border px-4">
           <Link to="/" className="text-sm font-semibold tracking-tight">
             DeVibe
           </Link>
-          <button className="dv-btn-secondary px-2 py-1 text-xs" type="button">
+          <button
+            className="dv-btn-secondary px-2 py-1 text-xs"
+            type="button"
+            onClick={() => {
+              setMessages([]);
+              setLastProject(null);
+            }}
+          >
             <Icon name="add" className="text-sm" />
             New
           </button>
@@ -251,6 +401,16 @@ export function ChatPage() {
                 {p.name}
               </li>
             ))}
+            {lastProject ? (
+              <li className="rounded-lg border border-primary/30 bg-primary-soft/40 px-3 py-2 text-sm">
+                <button type="button" className="w-full text-left" onClick={() => openIde(lastProject)}>
+                  {lastProject.title}
+                  <span className="mt-0.5 block text-[10px] text-text-subtle">
+                    Generated · open IDE
+                  </span>
+                </button>
+              </li>
+            ) : null}
           </ul>
 
           <p className="mb-2 px-2 text-[10px] font-medium uppercase tracking-widest text-text-subtle">
@@ -273,11 +433,12 @@ export function ChatPage() {
           <Link to="/mcp" className="block text-primary hover:underline">
             MCP Server Builder
           </Link>
-          <p>Claude + Codex · {aiMock ? "fallback mode" : "live API"}</p>
+          <p>
+            Claude plans · Codex generates · {aiMock ? "fallback mode" : "live API"}
+          </p>
         </div>
       </aside>
 
-      {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b border-border px-4">
           <div className="flex items-center gap-3">
@@ -290,9 +451,13 @@ export function ChatPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/workspace" className="dv-btn-secondary px-3 py-1.5 text-xs">
+            <button
+              type="button"
+              className="dv-btn-secondary px-3 py-1.5 text-xs"
+              onClick={() => openIde(lastProject)}
+            >
               Open IDE
-            </Link>
+            </button>
             <Link to="/cloud" className="dv-btn-primary px-3 py-1.5 text-xs">
               Deploy
             </Link>
@@ -304,13 +469,19 @@ export function ChatPage() {
             {empty ? (
               <EmptyState onPick={(s) => void sendPrompt(s)} />
             ) : (
-              messages.map((msg) => <MessageBubble key={msg.id} message={msg} />)
+              messages.map((msg) => (
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  onApply={() => openIde(lastProject)}
+                  canApply={Boolean(lastProject) || msg.kind === "generated"}
+                />
+              ))
             )}
             <div ref={bottomRef} />
           </div>
         </div>
 
-        {/* Prompt composer */}
         <div className="border-t border-border bg-surface/80 px-4 py-4 backdrop-blur">
           <form onSubmit={onSubmit} className="mx-auto max-w-3xl">
             {detectedTags.length > 0 ? (
@@ -325,35 +496,37 @@ export function ChatPage() {
 
             <div className="dv-card overflow-hidden focus-within:border-primary focus-within:shadow-[0_0_0_3px_rgba(124,58,237,0.2)]">
               <textarea
-                ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={onKeyDown}
                 rows={3}
-                placeholder="Describe your product idea or paste a PRD…"
+                placeholder="Describe an app or website to generate with desktop + mobile previews…"
                 className="w-full resize-none border-0 bg-transparent px-4 pt-3 pb-2 text-sm text-text outline-none placeholder:text-text-subtle"
               />
               <div className="flex items-center justify-between gap-3 border-t border-border px-3 py-2">
                 <div className="flex items-center gap-2">
-                  <button type="button" className="dv-btn-secondary px-2 py-1 text-xs" title="Attach">
-                    <Icon name="attach_file" className="text-base" />
-                  </button>
                   <select
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
                     className="rounded-lg border border-border bg-surface px-2 py-1 text-xs text-text-muted outline-none"
                   >
-                    {MODELS.map((m) => (
+                    {models.map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.label}
+                        {m.role === "codegen" ? " · codegen" : ""}
                       </option>
                     ))}
                   </select>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="hidden text-[11px] text-text-subtle sm:inline">
-                    Enter to send · Shift+Enter newline
-                  </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={!input.trim() || streaming}
+                    className="dv-btn-secondary px-3 py-1.5 text-xs disabled:opacity-40"
+                    onClick={() => void sendPrompt(`Build this app with dual previews: ${input}`)}
+                  >
+                    Generate app
+                  </button>
                   <button
                     type="submit"
                     disabled={!input.trim() || streaming}
@@ -380,10 +553,8 @@ function EmptyState({ onPick }: { onPick: (s: string) => void }) {
       </div>
       <h1 className="mb-2 text-2xl font-semibold tracking-tight">What should we build?</h1>
       <p className="mx-auto mb-8 max-w-md text-sm text-text-muted">
-        Multi-agent creation from a single prompt. Tag a PRD with{" "}
-        <code className="font-mono text-xs text-primary">github-connected</code> and{" "}
-        <code className="font-mono text-xs text-primary">cloud-enabled</code> to unlock full
-        lifecycle management.
+        Codex runs the code generator. Claude plans. You get live desktop and 390px mobile
+        previews in the IDE for the best version of the site.
       </p>
       <div className="grid gap-2 sm:grid-cols-2">
         {SUGGESTIONS.map((s) => (
@@ -401,7 +572,15 @@ function EmptyState({ onPick }: { onPick: (s: string) => void }) {
   );
 }
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+function MessageBubble({
+  message,
+  onApply,
+  canApply,
+}: {
+  message: ChatMessage;
+  onApply: () => void;
+  canApply: boolean;
+}) {
   if (message.role === "user") {
     return (
       <div className="flex justify-end animate-fade-up">
@@ -441,21 +620,17 @@ function MessageBubble({ message }: { message: ChatMessage }) {
           <pre className="overflow-x-auto rounded-xl border border-border bg-surface p-3 font-mono text-[11px] text-accent">
             {message.content}
           </pre>
-        ) : message.kind === "code" ? (
-          <pre className="overflow-x-auto rounded-xl border border-border bg-surface p-3 font-mono text-[12px]">
-            {message.content}
-          </pre>
         ) : (
           <div className="rounded-2xl rounded-tl-md border border-border bg-surface-card px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap text-text-muted">
-            {message.content || (message.streaming ? " " : "")}
+            {message.content.replace(/\*\*(.*?)\*\*/g, "$1") || (message.streaming ? " " : "")}
           </div>
         )}
 
-        {!message.streaming && message.kind !== "json" ? (
+        {!message.streaming && message.kind !== "json" && canApply ? (
           <div className="flex gap-2">
-            <Link to="/workspace" className="dv-btn-secondary px-2.5 py-1 text-[11px]">
-              Apply to IDE
-            </Link>
+            <button type="button" onClick={onApply} className="dv-btn-secondary px-2.5 py-1 text-[11px]">
+              {message.kind === "generated" ? "Open dual preview" : "Apply to IDE"}
+            </button>
             <Link to="/cloud" className="dv-btn-secondary px-2.5 py-1 text-[11px]">
               Open cloud plan
             </Link>
@@ -476,12 +651,10 @@ function StatusDot({ status }: { status: AgentStatus }) {
   return <span className={`h-1.5 w-1.5 rounded-full ${color}`} />;
 }
 
-function buildAgentReply(text: string, tags: string[]): string[] {
-  const base =
-    tags.length > 0
-      ? `I parsed your request and detected lifecycle tags: ${tags.join(", ")}.\n\nI'll coordinate Product → DevOps → Security. Next I'll draft a PRD block and a Cloudflare-first plan you can apply from the Cloud screen.`
-      : `Got it. I'll turn this into a structured plan with PRD metadata, architecture, and agent tasks.\n\nIdea summary: "${text.slice(0, 140)}${text.length > 140 ? "…" : ""}"\n\nReply with more constraints, or open the IDE when you're ready to generate code.`;
-  return base.split(/(\s+)/).filter(Boolean);
+function buildAgentReply(text: string, tags: string[]): string {
+  return tags.length > 0
+    ? `I parsed your request and detected lifecycle tags: ${tags.join(", ")}.\n\nI'll coordinate Product → DevOps → Security. Ask me to build a website to run the code generator with desktop + mobile previews.`
+    : `Got it. I'll turn this into a structured plan.\n\nIdea summary: "${text.slice(0, 140)}${text.length > 140 ? "…" : ""}"\n\nSay "build a … website/app" to generate code with dual previews.`;
 }
 
 function wait(ms: number) {

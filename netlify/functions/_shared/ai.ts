@@ -7,6 +7,8 @@ export interface AiModel {
   /** Netlify AI Gateway / provider model id */
   model: string;
   kind: "claude" | "codex" | "gpt";
+  /** Hint for UI: chat planning vs code generation */
+  role?: "chat" | "codegen";
 }
 
 /** Curated models for Claude Code + Codex coding agents. */
@@ -17,6 +19,7 @@ export const AI_MODELS: AiModel[] = [
     provider: "anthropic",
     model: "claude-sonnet-4-5-20250929",
     kind: "claude",
+    role: "chat",
   },
   {
     id: "claude-opus",
@@ -24,6 +27,7 @@ export const AI_MODELS: AiModel[] = [
     provider: "anthropic",
     model: "claude-opus-4-6",
     kind: "claude",
+    role: "chat",
   },
   {
     id: "claude-haiku",
@@ -31,6 +35,7 @@ export const AI_MODELS: AiModel[] = [
     provider: "anthropic",
     model: "claude-haiku-4-5-20251001",
     kind: "claude",
+    role: "chat",
   },
   {
     id: "gpt-5-codex",
@@ -38,6 +43,7 @@ export const AI_MODELS: AiModel[] = [
     provider: "openai",
     model: "gpt-5-codex",
     kind: "codex",
+    role: "codegen",
   },
   {
     id: "gpt-5.1-codex",
@@ -45,6 +51,7 @@ export const AI_MODELS: AiModel[] = [
     provider: "openai",
     model: "gpt-5.1-codex",
     kind: "codex",
+    role: "codegen",
   },
   {
     id: "gpt-5.2-codex",
@@ -52,6 +59,7 @@ export const AI_MODELS: AiModel[] = [
     provider: "openai",
     model: "gpt-5.2-codex",
     kind: "codex",
+    role: "codegen",
   },
 ];
 
@@ -69,6 +77,8 @@ export function resolveModel(idOrLabel: string): AiModel {
 const SYSTEM_PROMPT = `You are DeVibe AI Builder — an AI engineering platform assistant.
 Help users design apps, generate PRDs with github-connected / cloud-enabled tags,
 plan Supabase dataplane + MCS cloud deploys (Cloudflare-first), and MCP tooling.
+When the user wants a website or app UI, tell them you can generate code with dual
+desktop + mobile previews in the IDE (Apply to IDE / Generate app).
 Be concise, concrete, and prefer actionable next steps.`;
 
 export async function runChat(input: {
@@ -79,11 +89,15 @@ export async function runChat(input: {
   const history = input.messages.filter((m) => m.role !== "system");
 
   try {
-    if (model.provider === "anthropic") {
-      const text = await callAnthropic(model.model, history);
-      return { text, model };
-    }
-    const text = await callOpenAI(model.model, history);
+    const text = await runRawCompletion({
+      model,
+      system: SYSTEM_PROMPT,
+      messages: history.map((m) => ({
+        role: m.role === "assistant" ? "assistant" : "user",
+        content: m.content,
+      })),
+      maxTokens: 2048,
+    });
     return { text, model };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -96,9 +110,23 @@ export async function runChat(input: {
   }
 }
 
+export async function runRawCompletion(input: {
+  model: AiModel;
+  system: string;
+  messages: Array<{ role: "user" | "assistant"; content: string }>;
+  maxTokens?: number;
+}): Promise<string> {
+  if (input.model.provider === "anthropic") {
+    return callAnthropic(input.model.model, input.system, input.messages, input.maxTokens ?? 2048);
+  }
+  return callOpenAI(input.model.model, input.system, input.messages, input.maxTokens ?? 2048);
+}
+
 async function callAnthropic(
   model: string,
+  system: string,
   messages: Array<{ role: string; content: string }>,
+  maxTokens: number,
 ): Promise<string> {
   const Anthropic = (await import("@anthropic-ai/sdk")).default;
   const baseURL =
@@ -107,14 +135,12 @@ async function callAnthropic(
       ? Netlify.env.get("ANTHROPIC_BASE_URL")
       : undefined);
 
-  const client = new Anthropic(
-    baseURL ? { baseURL } : undefined,
-  );
+  const client = new Anthropic(baseURL ? { baseURL } : undefined);
 
   const response = await client.messages.create({
     model,
-    max_tokens: 2048,
-    system: SYSTEM_PROMPT,
+    max_tokens: maxTokens,
+    system,
     messages: messages.map((m) => ({
       role: m.role === "assistant" ? "assistant" : "user",
       content: m.content,
@@ -128,14 +154,17 @@ async function callAnthropic(
 
 async function callOpenAI(
   model: string,
+  system: string,
   messages: Array<{ role: string; content: string }>,
+  maxTokens: number,
 ): Promise<string> {
   const OpenAI = (await import("openai")).default;
   const client = new OpenAI();
   const completion = await client.chat.completions.create({
     model,
+    max_tokens: maxTokens,
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: system },
       ...messages.map((m) => ({
         role: (m.role === "assistant" ? "assistant" : "user") as "assistant" | "user",
         content: m.content,
@@ -154,10 +183,10 @@ function mockReply(prompt: string, model: AiModel): string {
     `I received: "${prompt.slice(0, 180)}${prompt.length > 180 ? "…" : ""}"`,
     "",
     "AI Gateway keys are not available in this environment yet.",
-    "Deploy to Netlify with AI Features enabled, or set provider API keys for local calls.",
+    "I can still generate a polished responsive app with desktop + mobile previews —",
+    "use **Generate app** or ask me to build a website and open the IDE.",
     "",
-    "Meanwhile I can still help you structure a PRD with `github-connected` + `cloud-enabled`,",
-    "scaffold a Supabase dataplane, and register an MCP server with the Cloud plugin from /mcp.",
+    "Deploy to Netlify with AI Features enabled for live Claude / Codex generation.",
   ].join("\n");
 }
 
