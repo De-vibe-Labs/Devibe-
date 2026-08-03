@@ -1,6 +1,10 @@
-# DeVibe
+# DeVibe / Monaco Cloud
 
-AI Engineering Platform — **tagged PRD or MCP call → Supabase dataplane + agent-managed multi-cloud runtime** via MCS.
+**Monaco Cloud** — Build. Deploy. Scale. Anywhere.
+
+AI-native cloud OS centered on [Monaco Editor](https://microsoft.github.io/monaco-editor/), with DeVibe’s MCS + Supabase dataplane underneath.
+
+Architecture: [`docs/architecture/MONACO_CLOUD.md`](docs/architecture/MONACO_CLOUD.md)
 
 Phase 1 ships a foundation SDK with **mocked** Cloudflare / AWS / GCP / Azure adapters. No real cloud credentials required for demos.
 
@@ -14,7 +18,7 @@ Phase 1 ships a foundation SDK with **mocked** Cloudflare / AWS / GCP / Azure ad
 | [`.devibe/project.yaml`](.devibe/project.yaml) | Machine-readable twin of PRD frontmatter |
 | [`docs/roadmap/AI_ENGINEERING_PLATFORM.md`](docs/roadmap/AI_ENGINEERING_PLATFORM.md) | Multi-phase platform expansion plan |
 | [`docs/specs/MCS.md`](docs/specs/MCS.md) | Model Cloud Standard (draft) |
-| [`docs/architecture/`](docs/architecture/) | Supabase hybrid + agentic ops architecture |
+| [`docs/architecture/MONACO_CLOUD.md`](docs/architecture/MONACO_CLOUD.md) | Monaco Cloud OS modules + CLI + QR |
 | [`prompts/required-feature-prompt.md`](prompts/required-feature-prompt.md) | Template for every new feature |
 | [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md) | Canonical monorepo layout |
 | [`Makefile`](Makefile) | `prd-validate`, `agents-run`, `deploy-cloudflare`, … |
@@ -37,7 +41,11 @@ make web-dev               # Vite + Netlify Functions (auth, AI, MCP builder)
 | Sign in / Sign up | `/login`, `/signup` — Firebase Google (preferred) → Netlify Identity → local |
 | AI Builder (home) | `/` — Claude plans · Codex generates via `/api/ai/chat` + `/api/ai/generate` |
 | MCP Server Builder | `/mcp` — compose servers with **Cloud plugin** |
-| IDE dual preview | `/workspace` — desktop + 390px mobile iframes of the generated build |
+| IDE (Monaco) | `/workspace` — Monaco Editor + dual preview + OS chrome |
+| MCP Marketplace | `/marketplace` |
+| Security Center | `/security` — QR pairing (no credentials) |
+| Cloud Dashboard | `/dashboard` |
+| CLI | `pnpm monaco help` → `monaco deploy|mcp|pair|…` |
 
 Set `VITE_FIREBASE_*` for Firebase Google Sign-In (see `.env.example`). Without Firebase, Netlify Identity is used after deploy; locally auth falls back to a demo session store. Enable AI Features on Netlify for live Claude / Codex; otherwise the local code generator still produces previewable apps.
 

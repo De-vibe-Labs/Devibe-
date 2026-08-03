@@ -14,4 +14,5 @@ export type {
 } from "./types.js";
 export { createMcpServerDefinition, listAvailablePlugins } from "./builder.js";
 export { resolvePluginTools, cloudPluginTools } from "./plugins/index.js";
-export { buildClientConfig, buildBootstrapTs } from "./generate.js";
+export { buildClientConfig, buildBootstrapTs, buildLanguageTemplate } from "./generate.js";
+export type { McpSdkLanguage } from "./generate.js";

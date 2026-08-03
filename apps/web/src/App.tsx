@@ -10,13 +10,17 @@ import { AuthPage } from "./pages/AuthPage";
 import { CloudPage } from "./pages/CloudPage";
 import { DesignPromptsPage } from "./pages/DesignPromptsPage";
 import { McpBuilderPage } from "./pages/McpBuilderPage";
+import { MarketplacePage } from "./pages/MarketplacePage";
+import { SecurityCenterPage } from "./pages/SecurityCenterPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { KubernetesPage } from "./pages/KubernetesPage";
+import { SupabaseManagerPage } from "./pages/SupabaseManagerPage";
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Chat prompt is the product entry — no auth gate */}
           <Route path="/" element={<ChatPage />} />
           <Route path="/chat" element={<Navigate to="/" replace />} />
           <Route path="/home" element={<LandingPage />} />
@@ -28,6 +32,11 @@ export default function App() {
               </RequireAuth>
             }
           />
+          <Route path="/marketplace" element={<MarketplacePage />} />
+          <Route path="/security" element={<SecurityCenterPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/kubernetes" element={<KubernetesPage />} />
+          <Route path="/supabase" element={<SupabaseManagerPage />} />
           <Route path="/workspace" element={<WorkspacePage />} />
           <Route path="/orchestration" element={<OrchestrationPage />} />
           <Route path="/fleet" element={<FleetPage />} />

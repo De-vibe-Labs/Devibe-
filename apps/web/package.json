@@ -3,10 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "DeVibe Vite + React web app (landing, workspace, orchestration, fleet).",
+  "description": "Monaco Cloud — AI Cloud OS (Vite + React + Monaco Editor).",
   "scripts": {
     "dev": "vite",
-    "build": "pnpm --filter @devibe/project-config --filter @devibe/cloud-providers --filter @devibe/auth --filter @devibe/mcp-builder run build && tsc -b && vite build",
+    "build": "pnpm --filter @devibe/project-config --filter @devibe/cloud-providers --filter @devibe/auth --filter @devibe/mcp-builder --filter @devibe/mcp-marketplace run build && tsc -b && vite build",
     "typecheck": "tsc -b --pretty false",
     "lint": "oxlint",
     "preview": "vite preview",
@@ -16,7 +16,10 @@
   "dependencies": {
     "@devibe/auth": "workspace:*",
     "@devibe/mcp-builder": "workspace:*",
+    "@devibe/mcp-marketplace": "workspace:*",
+    "@monaco-editor/react": "^4.7.0",
     "firebase": "^11.10.0",
+    "monaco-editor": "^0.56.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.1"

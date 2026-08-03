@@ -2,12 +2,13 @@ import { NavLink } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 
 const links = [
-  { to: "/", label: "AI Builder", end: true },
-  { to: "/mcp", label: "MCP Builder" },
+  { to: "/", label: "AI Agents", end: true },
   { to: "/workspace", label: "IDE" },
-  { to: "/cloud", label: "Cloud" },
+  { to: "/marketplace", label: "Marketplace" },
+  { to: "/mcp", label: "MCP Builder" },
+  { to: "/dashboard", label: "Cloud" },
+  { to: "/security", label: "Security" },
   { to: "/home", label: "About" },
-  { to: "/design-prompts", label: "Figma Prompts" },
 ];
 
 export function SiteNav() {
@@ -17,7 +18,7 @@ export function SiteNav() {
     <nav className="fixed top-0 z-40 flex h-14 w-full items-center justify-between border-b border-border bg-bg/80 px-6 backdrop-blur-xl">
       <div className="flex items-center gap-8">
         <NavLink to="/" className="text-[15px] font-semibold tracking-tight text-text">
-          DeVibe
+          Monaco Cloud
         </NavLink>
         <div className="hidden items-center gap-5 md:flex">
           {links.map((link) => (
