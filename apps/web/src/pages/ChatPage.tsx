@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "../components/SiteNav";
+import { useAuth } from "../auth/AuthProvider";
 import { apiGet, apiSend } from "../lib/api";
 import {
   saveGeneratedProject,
@@ -60,9 +61,9 @@ const PROJECTS = [
 
 const SUGGESTIONS = [
   "Build a coastal cafe landing page with reservation CTA",
+  "Connect GitHub to sync my workspace",
   "Generate a SaaS analytics marketing site with pricing",
   "Create a fitness app splash page optimized for mobile",
-  "Build a fintech wallet homepage with clear CTAs",
 ];
 
 const FALLBACK_MODELS: AiModelOption[] = [
@@ -101,8 +102,18 @@ export function isCodegenIntent(text: string): boolean {
   return false;
 }
 
+/** User is asking to connect / link GitHub — route them to Firebase login. */
+export function isGitHubConnectIntent(text: string): boolean {
+  const lower = text.toLowerCase();
+  if (/\b(connect|link|authorize|sign\s*in with|login with)\s+github\b/.test(lower)) return true;
+  if (/\bgithub\s+(connect|oauth|login|sign\s*in|auth)\b/.test(lower)) return true;
+  if (/\b(pair|attach)\s+(my\s+)?github\b/.test(lower)) return true;
+  return false;
+}
+
 export function ChatPage() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [models, setModels] = useState<AiModelOption[]>(FALLBACK_MODELS);
@@ -115,6 +126,16 @@ export function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const empty = messages.length === 0;
+  const githubLinked = user?.provider === "github";
+
+  function routeToLogin(intent?: "github" | "auth") {
+    navigate("/login", {
+      state: {
+        from: "/",
+        intent: intent === "github" ? "github" : undefined,
+      },
+    });
+  }
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -240,6 +261,44 @@ export function ChatPage() {
   async function sendPrompt(raw: string) {
     const text = raw.trim();
     if (!text || streaming) return;
+
+    // GitHub connect prompts always route through Firebase login / GitHub OAuth.
+    if (isGitHubConnectIntent(text)) {
+      if (!user || !githubLinked) {
+        setMessages((m) => [
+          ...m,
+          { id: `u-${Date.now()}`, role: "user", content: text },
+          {
+            id: `auth-${Date.now()}`,
+            role: "agent",
+            agentId: "product",
+            content:
+              "GitHub connect requires Firebase sign-in. Redirecting you to login — use Connect GitHub (email / Google also work).",
+          },
+        ]);
+        setInput("");
+        window.setTimeout(() => routeToLogin("github"), 600);
+        return;
+      }
+    }
+
+    // Codegen and cloud lifecycle need a signed-in session.
+    if ((isCodegenIntent(text) || detectTags(text).includes("github-connected")) && !user) {
+      setMessages((m) => [
+        ...m,
+        { id: `u-${Date.now()}`, role: "user", content: text },
+        {
+          id: `auth-${Date.now()}`,
+          role: "agent",
+          agentId: "product",
+          content:
+            "Sign in with email, Google, or GitHub to generate apps and link repositories. Taking you to login…",
+        },
+      ]);
+      setInput("");
+      window.setTimeout(() => routeToLogin(detectTags(text).includes("github-connected") ? "github" : "auth"), 600);
+      return;
+    }
 
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -451,6 +510,29 @@ export function ChatPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {!authLoading && !user ? (
+              <button
+                type="button"
+                className="dv-btn-secondary px-3 py-1.5 text-xs"
+                onClick={() => routeToLogin("auth")}
+              >
+                Sign in
+              </button>
+            ) : null}
+            {user && !githubLinked ? (
+              <button
+                type="button"
+                className="dv-btn-secondary px-3 py-1.5 text-xs"
+                onClick={() => routeToLogin("github")}
+              >
+                Connect GitHub
+              </button>
+            ) : null}
+            {user ? (
+              <span className="hidden text-[11px] text-text-subtle sm:inline">
+                {user.email}
+              </span>
+            ) : null}
             <button
               type="button"
               className="dv-btn-secondary px-3 py-1.5 text-xs"
@@ -458,11 +540,23 @@ export function ChatPage() {
             >
               Open IDE
             </button>
+            <Link to="/pricing" className="dv-btn-secondary px-3 py-1.5 text-xs">
+              Pricing
+            </Link>
             <Link to="/cloud" className="dv-btn-primary px-3 py-1.5 text-xs">
               Deploy
             </Link>
           </div>
         </header>
+
+        {!authLoading && !user ? (
+          <div className="border-b border-primary/20 bg-primary-soft/40 px-4 py-2 text-center text-xs text-primary">
+            Sign in with email, Google, or GitHub to generate apps and connect repositories.{" "}
+            <button type="button" className="underline" onClick={() => routeToLogin("auth")}>
+              Continue to login
+            </button>
+          </div>
+        ) : null}
 
         <div className="flex-1 overflow-y-auto px-4 py-6">
           <div className="mx-auto flex max-w-3xl flex-col gap-5">

@@ -17,13 +17,17 @@ export function AuthPage({ initial = "login" }: { initial?: AuthView }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, login, signup, oauthLogin, error, settings, clearError } = useAuth();
-  const from = (location.state as { from?: string } | null)?.from ?? "/";
+  const state = (location.state as { from?: string; intent?: string } | null) ?? {};
+  const searchIntent = new URLSearchParams(location.search).get("intent");
+  const intent = state.intent || searchIntent || null;
+  const from = state.from ?? (intent ? "/" : "/");
+  const githubFocus = intent === "github" || intent === "connect-github";
 
   useEffect(() => {
     if (user && view !== "welcome" && view !== "oauth") {
-      setView("welcome");
+      setView(githubFocus ? "oauth" : "welcome");
     }
-  }, [user, view]);
+  }, [user, view, githubFocus]);
 
   async function onLogin(e: FormEvent) {
     e.preventDefault();
@@ -77,17 +81,25 @@ export function AuthPage({ initial = "login" }: { initial?: AuthView }) {
   const identityNote = !settings
     ? null
     : settings.backend === "firebase"
-      ? "Signed in with Firebase (Google Sign-In enabled)."
+      ? githubFocus
+        ? "Connect GitHub with Firebase to unlock repo sync from chat."
+        : "Firebase auth: email/password, Google, and GitHub."
       : settings.backend === "local"
-        ? "Local demo auth — set VITE_FIREBASE_* for Google Sign-In, or deploy with Netlify Identity."
+        ? "Local demo auth — Firebase powers email, Google, and GitHub when configured."
         : null;
 
   return (
     <div className="orb-bg grain flex min-h-screen items-center justify-center px-4 py-16">
       <div className="w-full max-w-[420px] animate-fade-up">
         <Link to="/" className="mb-8 block text-center text-lg font-semibold tracking-tight">
-          DeVibe
+          Monaco Cloud
         </Link>
+
+        {githubFocus && !user ? (
+          <p className="mb-4 rounded-lg border border-primary/30 bg-primary-soft px-3 py-2 text-center text-xs text-primary">
+            Chat asked you to connect GitHub — sign in with GitHub (or email) to continue.
+          </p>
+        ) : null}
 
         {view === "login" ? (
           <AuthCard
@@ -113,6 +125,7 @@ export function AuthPage({ initial = "login" }: { initial?: AuthView }) {
             note={identityNote}
             showGithub={settings?.providers.github !== false}
             showGoogle={settings?.providers.google !== false}
+            highlightGithub={githubFocus}
           >
             <form className="space-y-3" onSubmit={onLogin}>
               <Field
@@ -164,6 +177,7 @@ export function AuthPage({ initial = "login" }: { initial?: AuthView }) {
             note={identityNote}
             showGithub={settings?.providers.github !== false}
             showGoogle={settings?.providers.google !== false}
+            highlightGithub={githubFocus}
           >
             <form className="space-y-3" onSubmit={onSignup}>
               <Field label="Name" type="text" autoComplete="name" value={name} onChange={setName} />
@@ -215,8 +229,10 @@ export function AuthPage({ initial = "login" }: { initial?: AuthView }) {
             <div className="flex flex-wrap justify-center gap-2">
               {user?.provider === "google" ? (
                 <span className="dv-tag">google-connected</span>
-              ) : (
+              ) : user?.provider === "github" ? (
                 <span className="dv-tag">github-connected</span>
+              ) : (
+                <span className="dv-tag">email-connected</span>
               )}
               {settings?.backend === "firebase" ? (
                 <span className="dv-tag">firebase-auth</span>
@@ -227,9 +243,9 @@ export function AuthPage({ initial = "login" }: { initial?: AuthView }) {
             <button
               type="button"
               className="dv-btn-primary w-full py-2.5 text-sm"
-              onClick={() => setView("welcome")}
+              onClick={() => navigate(from.startsWith("/") ? from : "/")}
             >
-              Continue to workspace
+              Continue to chat
             </button>
           </div>
         ) : null}
@@ -279,6 +295,7 @@ function AuthCard({
   note,
   showGithub = true,
   showGoogle = true,
+  highlightGithub = false,
 }: {
   title: string;
   children: ReactNode;
@@ -289,6 +306,7 @@ function AuthCard({
   note: string | null;
   showGithub?: boolean;
   showGoogle?: boolean;
+  highlightGithub?: boolean;
 }) {
   return (
     <div className="dv-card p-6">
@@ -310,11 +328,13 @@ function AuthCard({
           <button
             type="button"
             disabled={busy}
-            className="dv-btn-secondary w-full py-2.5 text-sm disabled:opacity-50"
+            className={`w-full py-2.5 text-sm disabled:opacity-50 ${
+              highlightGithub ? "dv-btn-primary" : "dv-btn-secondary"
+            }`}
             onClick={() => onOAuth("github")}
           >
             <Icon name="code" className="text-base" />
-            Continue with GitHub
+            {highlightGithub ? "Connect GitHub" : "Continue with GitHub"}
           </button>
         ) : null}
         {showGoogle ? (

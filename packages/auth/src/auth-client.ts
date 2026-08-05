@@ -2,13 +2,12 @@ import type { AuthProviderId, AuthSettings, AuthUser } from "./types.js";
 import { AuthError } from "./types.js";
 import {
   firebaseGetUser,
-  firebaseGoogleLogin,
+  firebaseOAuthLogin,
   firebaseHandleRedirectResult,
   firebaseLogin,
   firebaseLogout,
   firebaseOnAuthChange,
   firebaseSignup,
-  firebaseSupportsProvider,
   isFirebaseConfigured,
 } from "./firebase-auth.js";
 import {
@@ -72,7 +71,7 @@ export async function getAuthSettings(): Promise<AuthSettings> {
     return {
       autoconfirm: true,
       disableSignup: false,
-      providers: { google: true, github: false },
+      providers: { google: true, github: true },
       identityAvailable: false,
       firebaseAvailable: true,
       backend: "firebase",
@@ -141,13 +140,13 @@ export async function logout(): Promise<void> {
 export async function oauthLogin(provider: AuthProviderId): Promise<AuthUser | void> {
   const backend = await resolveAuthBackend();
   if (backend === "firebase") {
-    if (!firebaseSupportsProvider(provider)) {
+    if (provider !== "google" && provider !== "github") {
       throw new AuthError(
-        `Provider ${provider} is not available with Firebase. Use Google, or configure Netlify Identity for GitHub.`,
+        `Provider ${provider} is not available with Firebase. Use email, Google, or GitHub.`,
         400,
       );
     }
-    return firebaseGoogleLogin();
+    return firebaseOAuthLogin(provider);
   }
   if (backend === "local") {
     if (provider === "github" || provider === "google") {

@@ -2,6 +2,7 @@ import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import {
   getAuth,
   GoogleAuthProvider,
+  GithubAuthProvider,
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
@@ -11,6 +12,7 @@ import {
   signOut,
   onAuthStateChanged,
   type Auth,
+  type AuthProvider,
   type User as FirebaseUser,
 } from "firebase/auth";
 import type { AuthProviderId, AuthUser } from "./types.js";
@@ -78,6 +80,7 @@ export function isFirebaseConfigured(env: EnvLike = readEnv()): boolean {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let googleProvider: GoogleAuthProvider | null = null;
+let githubProvider: GithubAuthProvider | null = null;
 /** Test / DI override */
 let configOverride: FirebaseWebConfig | null | undefined;
 
@@ -86,6 +89,7 @@ export function setFirebaseConfigOverride(config: FirebaseWebConfig | null | und
   app = null;
   auth = null;
   googleProvider = null;
+  githubProvider = null;
 }
 
 function getConfig(): FirebaseWebConfig | null {
@@ -115,15 +119,73 @@ function getGoogleProvider(): GoogleAuthProvider {
   return googleProvider;
 }
 
+function getGithubProvider(): GithubAuthProvider {
+  if (!githubProvider) {
+    githubProvider = new GithubAuthProvider();
+    githubProvider.addScope("read:user");
+    githubProvider.addScope("user:email");
+    githubProvider.addScope("repo");
+  }
+  return githubProvider;
+}
+
+function providerFor(id: "google" | "github"): AuthProvider {
+  return id === "github" ? getGithubProvider() : getGoogleProvider();
+}
+
+export async function firebaseOAuthLogin(provider: "google" | "github"): Promise<AuthUser> {
+  const a = getFirebaseAuth();
+  if (!a) throw new AuthError("Firebase is not configured.", 503);
+  const authProvider = providerFor(provider);
+  const label = provider === "github" ? "GitHub" : "Google";
+  try {
+    const cred = await signInWithPopup(a, authProvider);
+    const user = mapFirebaseUser(cred.user);
+    if (!user) throw new AuthError(`${label} sign-in failed.`, 401);
+    return user;
+  } catch (err) {
+    const code =
+      typeof err === "object" && err && "code" in err
+        ? String((err as { code: unknown }).code)
+        : "";
+    if (
+      code.includes("popup-blocked") ||
+      code.includes("popup-closed-by-user") ||
+      code.includes("operation-not-supported")
+    ) {
+      if (code.includes("popup-closed-by-user")) {
+        throw new AuthError(`${label} sign-in was cancelled.`, 400);
+      }
+      await signInWithRedirect(a, authProvider);
+      throw new AuthError(`Redirecting to ${label} sign-in…`, 302);
+    }
+    wrapFirebaseError(err);
+  }
+}
+
+/** @deprecated Prefer firebaseOAuthLogin("google") */
+export async function firebaseGoogleLogin(): Promise<AuthUser> {
+  return firebaseOAuthLogin("google");
+}
+
+export async function firebaseGithubLogin(): Promise<AuthUser> {
+  return firebaseOAuthLogin("github");
+}
+
 export function mapFirebaseUser(user: FirebaseUser | null | undefined): AuthUser | null {
   if (!user?.email) return null;
-  const isGoogle = user.providerData.some((p) => p.providerId === "google.com");
+  const ids = user.providerData.map((p) => p.providerId);
+  const provider: AuthUser["provider"] = ids.includes("github.com")
+    ? "github"
+    : ids.includes("google.com")
+      ? "google"
+      : "email";
   return {
     id: user.uid,
     email: user.email,
     name: user.displayName ?? undefined,
     emailVerified: user.emailVerified,
-    provider: isGoogle ? "google" : "email",
+    provider,
     avatarUrl: user.photoURL ?? undefined,
   };
 }
@@ -203,37 +265,6 @@ export async function firebaseLogout(): Promise<void> {
   await signOut(a);
 }
 
-export async function firebaseGoogleLogin(): Promise<AuthUser> {
-  const a = getFirebaseAuth();
-  if (!a) throw new AuthError("Firebase is not configured.", 503);
-  const provider = getGoogleProvider();
-  try {
-    const cred = await signInWithPopup(a, provider);
-    const user = mapFirebaseUser(cred.user);
-    if (!user) throw new AuthError("Google sign-in failed.", 401);
-    return user;
-  } catch (err) {
-    const code =
-      typeof err === "object" && err && "code" in err
-        ? String((err as { code: unknown }).code)
-        : "";
-    // Popup blocked / unsupported (common on some mobile WebViews) → redirect.
-    if (
-      code.includes("popup-blocked") ||
-      code.includes("popup-closed-by-user") ||
-      code.includes("operation-not-supported")
-    ) {
-      if (code.includes("popup-closed-by-user")) {
-        throw new AuthError("Google sign-in was cancelled.", 400);
-      }
-      await signInWithRedirect(a, provider);
-      // Redirect navigates away; caller should treat as pending.
-      throw new AuthError("Redirecting to Google sign-in…", 302);
-    }
-    wrapFirebaseError(err);
-  }
-}
-
 export async function firebaseHandleRedirectResult(): Promise<AuthUser | null> {
   const a = getFirebaseAuth();
   if (!a) return null;
@@ -256,5 +287,5 @@ export function firebaseOnAuthChange(
 }
 
 export function firebaseSupportsProvider(provider: AuthProviderId): boolean {
-  return provider === "google";
+  return provider === "google" || provider === "github";
 }

@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthProvider";
 const links = [
   { to: "/", label: "AI Agents", end: true },
   { to: "/workspace", label: "IDE" },
+  { to: "/pricing", label: "Pricing" },
   { to: "/marketplace", label: "Marketplace" },
   { to: "/mcp", label: "MCP Builder" },
   { to: "/dashboard", label: "Cloud" },

@@ -34,5 +34,7 @@ export {
   resolveFirebaseConfig,
   mapFirebaseUser,
   setFirebaseConfigOverride,
+  firebaseOAuthLogin,
+  firebaseGithubLogin,
   type FirebaseWebConfig,
 } from "./firebase-auth.js";

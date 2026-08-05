@@ -45,7 +45,7 @@ make web-dev               # Vite + Netlify Functions (auth, AI, MCP builder)
 | MCP Marketplace | `/marketplace` |
 | Security Center | `/security` — QR pairing (no credentials) |
 | Cloud Dashboard | `/dashboard` |
-| CLI | `pnpm monaco help` → `monaco deploy|mcp|pair|…` |
+| Pricing | `/pricing` — Stripe plans + referral codes |
 
 Set `VITE_FIREBASE_*` for Firebase Google Sign-In (see `.env.example`). Without Firebase, Netlify Identity is used after deploy; locally auth falls back to a demo session store. Enable AI Features on Netlify for live Claude / Codex; otherwise the local code generator still produces previewable apps.
 
