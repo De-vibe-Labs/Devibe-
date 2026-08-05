@@ -6,10 +6,12 @@ vi.mock("./firebase-auth.js", () => ({
   firebaseLogin: vi.fn(),
   firebaseSignup: vi.fn(),
   firebaseLogout: vi.fn(),
+  firebaseOAuthLogin: vi.fn(),
   firebaseGoogleLogin: vi.fn(),
+  firebaseGithubLogin: vi.fn(),
   firebaseHandleRedirectResult: vi.fn(async () => null),
   firebaseOnAuthChange: vi.fn(() => () => undefined),
-  firebaseSupportsProvider: (provider: string) => provider === "google",
+  firebaseSupportsProvider: (provider: string) => provider === "google" || provider === "github",
 }));
 
 vi.mock("./netlify-identity.js", () => ({
@@ -74,7 +76,7 @@ describe("auth-client backend resolution", () => {
 
   it("routes Google OAuth to Firebase when active", async () => {
     vi.mocked(firebase.isFirebaseConfigured).mockReturnValue(true);
-    vi.mocked(firebase.firebaseGoogleLogin).mockResolvedValue({
+    vi.mocked(firebase.firebaseOAuthLogin).mockResolvedValue({
       id: "uid-1",
       email: "builder@gmail.com",
       emailVerified: true,
@@ -83,7 +85,27 @@ describe("auth-client backend resolution", () => {
     });
     const user = await oauthLogin("google");
     expect(user?.email).toBe("builder@gmail.com");
-    expect(firebase.firebaseGoogleLogin).toHaveBeenCalledOnce();
+    expect(firebase.firebaseOAuthLogin).toHaveBeenCalledWith("google");
+  });
+
+  it("routes GitHub OAuth to Firebase when active", async () => {
+    vi.mocked(firebase.isFirebaseConfigured).mockReturnValue(true);
+    vi.mocked(firebase.firebaseOAuthLogin).mockResolvedValue({
+      id: "uid-gh",
+      email: "dev@users.noreply.github.com",
+      emailVerified: true,
+      provider: "github",
+      name: "Dev",
+    });
+    const user = await oauthLogin("github");
+    expect(user?.provider).toBe("github");
+    expect(firebase.firebaseOAuthLogin).toHaveBeenCalledWith("github");
+  });
+
+  it("exposes GitHub provider in Firebase settings", async () => {
+    vi.mocked(firebase.isFirebaseConfigured).mockReturnValue(true);
+    const settings = await getAuthSettings();
+    expect(settings.providers.github).toBe(true);
   });
 
   it("keeps local Google OAuth when Firebase is off", async () => {

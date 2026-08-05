@@ -15,6 +15,7 @@ import { SecurityCenterPage } from "./pages/SecurityCenterPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { KubernetesPage } from "./pages/KubernetesPage";
 import { SupabaseManagerPage } from "./pages/SupabaseManagerPage";
+import { PricingPage } from "./pages/PricingPage";
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
             }
           />
           <Route path="/marketplace" element={<MarketplacePage />} />
+          <Route path="/pricing" element={<PricingPage />} />
           <Route path="/security" element={<SecurityCenterPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/kubernetes" element={<KubernetesPage />} />

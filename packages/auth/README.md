@@ -2,22 +2,28 @@
 
 Auth helpers with three backends (auto-selected):
 
-1. **Firebase** — when `VITE_FIREBASE_*` (or `FIREBASE_*`) web config is set. Google Sign-In + email/password.
+1. **Firebase** — when configured. **Email/password**, **Google**, and **GitHub** Sign-In.
 2. **Netlify Identity** — when Identity is reachable on a deployed Netlify site.
-3. **Local session** — Vite-only demo store in `localStorage` (no Identity / Firebase).
+3. **Local session** — Vite-only demo store in `localStorage`.
 
 ```ts
 import { login, signup, getUser, logout, oauthLogin } from "@devibe/auth";
 
 await signup("you@example.com", "password123", "You");
-await oauthLogin("google"); // Firebase Google popup when configured
+await oauthLogin("github"); // Firebase GitHub popup when configured
+await oauthLogin("google");
 const user = await getUser();
 ```
 
-## Firebase Google Sign-In
+## Firebase setup
 
-Create a Firebase project → Authentication → enable **Google** and **Email/Password**.
-Add your web app and copy the config into `apps/web/.env` (or the monorepo root `.env`):
+In Firebase Console → Authentication → Sign-in method, enable:
+
+- Email/Password
+- Google
+- GitHub (add Client ID / Secret from GitHub OAuth App)
+
+Authorized domains must include `localhost` and your production host.
 
 ```bash
 VITE_FIREBASE_API_KEY=
@@ -30,8 +36,8 @@ VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MEASUREMENT_ID=
 ```
 
-`apps/web` also calls `setFirebaseConfigOverride()` from `src/lib/firebase.ts` (DeVibe Firebase project defaults + Analytics).
+`apps/web` registers config via `src/lib/firebase.ts` (`setFirebaseConfigOverride`).
 
-Authorized domains in Firebase Console must include `localhost` and your production host. Enable the **Google** provider under Authentication → Sign-in method.
+Chat routes to `/login?intent=github` (or navigation state) when the user is prompted to connect GitHub.
 
 Force a backend with `setAuthMode("firebase" | "identity" | "local" | "auto")`.
