@@ -188,7 +188,10 @@ export async function runMonacoCli(argv: string[]): Promise<CliResult> {
       return ok("workspaces", "Workspaces listed. Pair a device: monaco pair");
 
     case "billing":
-      return ok("billing", "Billing portal link (owner/admin only).");
+      return ok(
+        "billing",
+        "Open Pricing: /pricing\nPlans via Stripe · referrals via monaco billing /api/billing/referral",
+      );
 
     case "pair": {
       const projectId = (flags.project as string) || "proj_local";

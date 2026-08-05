@@ -2,7 +2,7 @@
   "name": "@devibe/auth",
   "version": "0.1.0",
   "private": true,
-  "description": "DeVibe auth helpers — Firebase Google Sign-In, Netlify Identity, and local session fallback.",
+  "description": "DeVibe auth helpers — Firebase email/Google/GitHub, Netlify Identity, local fallback.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
